@@ -27,6 +27,12 @@ class Quotation extends Model
 
     public function prices():BelongsToMany
     {
-        return $this->belongsToMany(Price::class)->using(PriceQuotation::class)->withPivot('quantity','item_price',"supply_price","install_price",'item_type');/////we have to include any attribute in the pivot table which you want to retrieve when BELONGS TO MANY relationship is loaded
+        return $this->belongsToMany(Price::class)->using(PriceQuotation::class)->withPivot('quantity','item_price',"supply_price","install_price",'scope');/////we have to include any attribute in the pivot table which you want to retrieve when BELONGS TO MANY relationship is loaded
     }
+
+    public function mailPrices():BelongsToMany
+    {
+        return $this->belongsToMany(MailPrice::class)->using(MailQuotation::class)->withPivot('quantity','item_price',"supply_price","install_price",'scope');/////we have to include any attribute in the pivot table which you want to retrieve when BELONGS TO MANY relationship is loaded
+    }
+    
 }

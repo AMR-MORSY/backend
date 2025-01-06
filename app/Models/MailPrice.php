@@ -2,21 +2,17 @@
 
 namespace App\Models;
 
-use App\Models\Users\User;
+use App\Models\Quotation;
 use App\Models\PriceQuotation;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Modifications\Modification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Price extends Model
+class MailPrice extends Model
 {
     use HasFactory;
 
-    protected $table = "prices";
-    protected $guarded = [];
-    protected $hidden = ["updated_at", "created_at"];
-
+    protected $table="mail_prices";
 
     public function quotations(): BelongsToMany
     {
