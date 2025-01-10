@@ -19,7 +19,7 @@ class QuotationResource extends JsonResource
         return [
             "id"=>$this->id,
             "modification"=>new ModificationResource($this->modification),
-            "user"=>$this->user,
+            "mail_prices"=>MailPriceResource::collection($this->mailPrices),
             "prices"=>PriceResource::collection($this->prices),
         ];
        

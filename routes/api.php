@@ -128,6 +128,11 @@ Route::prefix("quotation")->middleware(["auth:sanctum"])->group(function(){
 
 Route::get("/modification/{modification}",[QuotationController::class,"findQuotationBelongsToModification"]);
 Route::post ("/upload",[QuotationController::class,'uploadQuotation']);
+Route::get("/mailprices/index",[QuotationController::class,"mailPricesIndex"]);
+Route::put('/mailprices/{modification}/{quotation}',[QuotationController::class,"insertMailPricesItems"]);
+Route::put('/priceList/{modification}/{quotation}',[QuotationController::class,"insertPriceListItems"]);
+Route::put('/priceList/delete/items/{modification}/{quotation}',[QuotationController::class,"deletePriceListItems"]);
+Route::put('/mailList/delete/items/{modification}/{quotation}',[QuotationController::class,"deleteMailListItems"]);
 });
 
 

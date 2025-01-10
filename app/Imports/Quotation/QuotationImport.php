@@ -41,7 +41,7 @@ class QuotationImport implements  ToModel,SkipsEmptyRows,WithHeadingRow, WithVal
 
     public static function prepareValidation($row)
     {
-        $row["itemtype"] = strtolower(trim($row['itemtype']));
+        $row["scope"] = strtolower(trim($row['scope']));
 
         return $row;
     }
@@ -52,13 +52,13 @@ class QuotationImport implements  ToModel,SkipsEmptyRows,WithHeadingRow, WithVal
       return  [
         "item"=>['required','exists:prices,item'],
         "quantity"=>['required','numeric'],
-        'itemtype'=>['required',"regex:/^supply|install|s&i$/"]
+        'scope'=>['required',"regex:/^supply|install|s&i$/"]
       ];
     }
 
-    protected function getItemPrice(float $quantity,string $item_type, float $install_price,float $supply_price)
+    protected function getItemPrice(float $quantity,string $scope, float $install_price,float $supply_price)
     {
-        if($item_type=='supply')
+        if($scope=='supply')
         {
             if($supply_price!=null)
             {
@@ -68,7 +68,7 @@ class QuotationImport implements  ToModel,SkipsEmptyRows,WithHeadingRow, WithVal
                 return 0;
             }
         }
-        elseif ($item_type=='install')
+        elseif ($scope=='install')
         {
             if($install_price!=null)
             {
@@ -78,7 +78,7 @@ class QuotationImport implements  ToModel,SkipsEmptyRows,WithHeadingRow, WithVal
                 return 0;
             }
         }
-        elseif($item_type=='s&i')
+        elseif($scope=='s&i')
         {
             if($supply_price!=null && $install_price!=null)
             {
@@ -120,10 +120,10 @@ class QuotationImport implements  ToModel,SkipsEmptyRows,WithHeadingRow, WithVal
             "quotation_id"=>$this->quotation_id,
             "price_id"=>$this->returnPriceValue('id',$row['item']),
             "quantity"=>$row['quantity'],
-            "item_type"=>$row['itemtype'],
+            "scope"=>$row['scope'],
             "install_price"=>Price::where("item",$row['item'])->first()->installation,
             "supply_price"=>Price::where("item",$row['item'])->first()->supply,
-            "item_price"=>$this->getItemPrice($row['quantity'],$row['itemtype'],Price::where("item",$row['item'])->first()->installation,Price::where("item",$row['item'])->first()->supply)
+            "item_price"=>$this->getItemPrice($row['quantity'],$row['scope'],Price::where("item",$row['item'])->first()->installation,Price::where("item",$row['item'])->first()->supply)
 
 
 

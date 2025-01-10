@@ -36,8 +36,8 @@ class PriceResource extends JsonResource
         'install_price' => $this->whenPivotLoaded("price_quotation", function () {/////////////////this attribute is not Price model attribute, this is a pivot table attribute, will be returned only in case of loading that table 
             return $this->pivot->install_price;
         }),
-        'item_type' => $this->whenPivotLoaded("price_quotation", function () {/////////////////this attribute is not Price model attribute, this is a pivot table attribute, will be returned only in case of loading that table 
-            return $this->pivot->item_type;
+        'scope' => $this->whenPivotLoaded("price_quotation", function () {/////////////////this attribute is not Price model attribute, this is a pivot table attribute, will be returned only in case of loading that table 
+            return $this->pivot->scope;
         }),
         'item_price' => $this->whenPivotLoaded("price_quotation", function () {/////////////////this attribute is not Price model attribute, this is a pivot table attribute, will be returned only in case of loading that table 
             return $this->pivot->item_price;

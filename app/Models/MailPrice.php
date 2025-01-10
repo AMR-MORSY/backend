@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Quotation;
+use App\Models\MailQuotation;
 use App\Models\PriceQuotation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,6 @@ class MailPrice extends Model
 
     public function quotations(): BelongsToMany
     {
-        return $this->belongsToMany(Quotation::class)->using(PriceQuotation::class)->withPivot('quantity','item_price',"supply_price","install_price",'scope');
+        return $this->belongsToMany(Quotation::class)->using(MailQuotation::class)->withPivot('quantity','item_price',"supply_price","install_price",'scope');
     }
 }
