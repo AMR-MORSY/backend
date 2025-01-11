@@ -13,7 +13,7 @@ class PricePolicy
      */
    public function viewPriceListItems(User $user)
    {
-        return $user->hasAnyDirectPermission(['read_CS_modifications','read_CE_modifications','read_GZ_modifications','read_CN_modifications']);
+        return $user->hasAnyPermission(['read_CS_modifications','read_CE_modifications','read_GZ_modifications','read_CN_modifications']);
 
 
    }

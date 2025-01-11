@@ -128,9 +128,11 @@ Route::prefix("quotation")->middleware(["auth:sanctum"])->group(function(){
 
 Route::get("/modification/{modification}",[QuotationController::class,"findQuotationBelongsToModification"]);
 Route::post ("/upload",[QuotationController::class,'uploadQuotation']);
+// Route::put('/modification/newpricelistitems/{modification}',[QuotationController::class,"addNewQuotationPriceListItems"]);
+// Route::put('/modification/newmailitems/{modification}',[QuotationController::class,"addNewQuotationMailItems"]);
 Route::get("/mailprices/index",[QuotationController::class,"mailPricesIndex"]);
-Route::put('/mailprices/{modification}/{quotation}',[QuotationController::class,"insertMailPricesItems"]);
-Route::put('/priceList/{modification}/{quotation}',[QuotationController::class,"insertPriceListItems"]);
+Route::put('/mailprices/{modification}/{quotation_id?}',[QuotationController::class,"insertMailPricesItems"]);
+Route::put('/priceList/{modification}/{quotation_id?}',[QuotationController::class,"insertPriceListItems"]);
 Route::put('/priceList/delete/items/{modification}/{quotation}',[QuotationController::class,"deletePriceListItems"]);
 Route::put('/mailList/delete/items/{modification}/{quotation}',[QuotationController::class,"deleteMailListItems"]);
 });

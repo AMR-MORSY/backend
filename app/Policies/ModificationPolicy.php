@@ -140,7 +140,7 @@ class ModificationPolicy
         return $user->hasPermissionTo('read_CN_modifications');
     }
 
-    public function createCairoNorthModification(User $user)
+    public function createCairoNorthSiteModification(User $user)
     {
         return $user->hasPermissionTo('create_CN_modifications');
     }

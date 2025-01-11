@@ -33,7 +33,7 @@ class QuotationController extends Controller
         return response(MailPriceResource::collection(MailPrice::all()), 200);
     }
 
-    public function insertPriceListItems(Request $request, Modification $modification, Quotation $quotation)
+    public function insertPriceListItems(Request $request, Modification $modification, $quotation_id = null)
     {
         $validator = Validator::make($request->all(), [
             "priceListItems" => ['required', "array"],
@@ -59,18 +59,39 @@ class QuotationController extends Controller
             );
         } else {
             $validated = $validated = $validator->validated();
+            if (!isset($quotation_id)) {
+                $quotation = Quotation::create([
+                    "modification_id" => $modification->id,
+                    "user_id" => $request->user()->id,
 
-            if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
-                $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
-            } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
-            } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =$this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
-            } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =$this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                ]);
+                if ($modification->oz == "Cairo South" && $request->user()->can('createCairoSouthSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } elseif ($modification->oz == "Cairo North" && $request->user()->can('createCairoNorthSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } elseif ($modification->oz == "Cairo East" && $request->user()->can('createCairoEastSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } elseif ($modification->oz == "Giza" && $request->user()->can('createGizaSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } else {
+                    abort(403);
+                }
             } else {
-                abort(403);
+                $quotation = Quotation::findOrFail($quotation_id);
+                if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
+                } else {
+                    abort(403);
+                }
             }
+
+
 
             return response([
                 "message" => "success",
@@ -81,7 +102,7 @@ class QuotationController extends Controller
         }
     }
 
-    public function insertMailPricesItems(Request $request, Modification $modification, Quotation $quotation)
+    public function insertMailPricesItems(Request $request, Modification $modification, $quotation_id = null)
     {
         $validator = Validator::make($request->all(), [
             "mail_prices" => ['required', "array"],
@@ -108,20 +129,40 @@ class QuotationController extends Controller
         } else {
             $validated = $validated = $validator->validated();
 
-            // return response($validated);
+            if (!isset($quotation_id)) {
+                $quotation = Quotation::create([
+                    "modification_id" => $modification->id,
+                    "user_id" => $request->user()->id,
 
-
-            if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =     $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
-            } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =      $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
-            } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =     $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
-            } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =     $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                ]);
+                if ($modification->oz == "Cairo South" && $request->user()->can('createCairoSouthSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } elseif ($modification->oz == "Cairo North" && $request->user()->can('createCairoNorthSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } elseif ($modification->oz == "Cairo East" && $request->user()->can('createCairoEastSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } elseif ($modification->oz == "Giza" && $request->user()->can('createGizaSiteModification', Modification::class)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } else {
+                    abort(403);
+                }
             } else {
-                abort(403);
+                $quotation = Quotation::findOrFail($quotation_id);
+                if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                    $new_quotation = $this->quotationsServices->addMailPricesItemsToQuotation($quotation, $validated);
+                } else {
+                    abort(403);
+                }
             }
+
+
+
 
             return response([
                 "message" => "success",
@@ -131,6 +172,10 @@ class QuotationController extends Controller
             ], 200);
         }
     }
+
+
+
+
 
     public function findQuotationBelongsToModification(Request $request, Modification $modification)
     {
@@ -184,47 +229,68 @@ class QuotationController extends Controller
             );
         } else {
             $validated = $validated = $validator->validated();
+            $modification = Modification::find($validated['id']);
+            $isAuthorized = false;
+            if ($modification->oz == "Cairo South" && $request->user()->can('createCairoSouthSiteModification', Modification::class)) {
+                $isAuthorized = true;
+            } elseif ($modification->oz == "Cairo North" && $request->user()->can('createCairoNorthSiteModification', Modification::class)) {
+                $isAuthorized = true;
+            } elseif ($modification->oz == "Cairo East" && $request->user()->can('createCairoEastSiteModification', Modification::class)) {
+                $isAuthorized = true;
+            } elseif ($modification->oz == "Giza" && $request->user()->can('createGizaSiteModification', Modification::class)) {
+                $isAuthorized = true;
+            } else {
+                abort(403);
+            }
 
-            $quotation = Quotation::create([
-                "modification_id" => $validated['id'],
-                "user_id" => $request->user()->id,
+            if ($isAuthorized) {
 
-            ]);
 
-            $import = new QuotationImport($quotation['id']);
-            try {
+                $quotation = Quotation::create([
+                    "modification_id" => $validated['id'],
+                    "user_id" => $request->user()->id,
 
-                Excel::import($import, $request->file("quotation"));
-                return response()->json([
-                    "message" => "inserted Succesfully",
                 ]);
-            } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                $quotation->delete();
-                $failures = $e->failures();
 
-                $errors = [];
-                $error = [];
+                $import = new QuotationImport($quotation['id']);
+                try {
 
-                foreach ($failures as $failure) {
-                    $error['row'] = $failure->row(); // row that went wrong
-                    $error['attribute'] = $failure->attribute(); // either heading key (if using heading row concern) or column index
-                    $error['errors'] = $failure->errors(); // Actual error messages from Laravel validator
-                    $error['values'] = $failure->values(); // The values of the row that has failed.
-                    array_push($errors, $error);
+                    Excel::import($import, $request->file("quotation"));
+                    return response()->json([
+                        "message" => "inserted Successfully",
+                    ]);
+                } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                    $quotation->delete();
+                    $failures = $e->failures();
+
+                    $errors = [];
+                    $error = [];
+
+                    foreach ($failures as $failure) {
+                        $error['row'] = $failure->row(); // row that went wrong
+                        $error['attribute'] = $failure->attribute(); // either heading key (if using heading row concern) or column index
+                        $error['errors'] = $failure->errors(); // Actual error messages from Laravel validator
+                        $error['values'] = $failure->values(); // The values of the row that has failed.
+                        array_push($errors, $error);
+                    }
+                    return response()->json([
+                        "sheet_errors" => $errors,
+                    ], 422);
                 }
-                return response()->json([
-                    "sheet_errors" => $errors,
-                ], 422);
             }
         }
     }
 
-    public function deletePriceListItems(Request $request,Modification $modification,Quotation $quotation)
+
+
+
+
+    public function deletePriceListItems(Request $request, Modification $modification, Quotation $quotation)
     {
         $validator = Validator::make($request->all(), [
             "priceListItems" => ['required', "array"],
             "priceListItems.*.id" => ['required', 'exists:prices,id'],
-          
+
 
         ]);
         if ($validator->fails()) {
@@ -250,30 +316,32 @@ class QuotationController extends Controller
             } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
                 $new_quotation = $this->quotationsServices->deletePriceListItemsFromQuotation($quotation, $validated);
             } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =$this->quotationsServices->deletePriceListItemsFromQuotation($quotation, $validated);
+                $new_quotation = $this->quotationsServices->deletePriceListItemsFromQuotation($quotation, $validated);
             } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =$this->quotationsServices->deletePriceListItemsFromQuotation($quotation, $validated);
+                $new_quotation = $this->quotationsServices->deletePriceListItemsFromQuotation($quotation, $validated);
             } else {
                 abort(403);
             }
         }
+        if ($new_quotation) {
+            return response([
+                "message" => "deleted Successfully",
+                "quotation" =>  $new_quotation,
 
-        return response([
-            "message" => "deleted Successfully",
-            "quotation" =>  $new_quotation,
 
-
+            ], 200);
+        }
+        return response()->json([
+            "message" => 'No quotation'
         ], 200);
-
-
     }
 
-    public function deleteMailListItems(Request $request,Modification $modification,Quotation $quotation)
+    public function deleteMailListItems(Request $request, Modification $modification, Quotation $quotation)
     {
         $validator = Validator::make($request->all(), [
             "mail_prices_items" => ['required', "array"],
             "mail_prices_items.*.id" => ['required', 'exists:mail_prices,id'],
-          
+
 
         ]);
         if ($validator->fails()) {
@@ -299,20 +367,23 @@ class QuotationController extends Controller
             } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
                 $new_quotation = $this->quotationsServices->deleteMailListItemsFromQuotation($quotation, $validated);
             } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =$this->quotationsServices->deleteMailListItemsFromQuotation($quotation, $validated);
+                $new_quotation = $this->quotationsServices->deleteMailListItemsFromQuotation($quotation, $validated);
             } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-                $new_quotation =$this->quotationsServices->deleteMailListItemsFromQuotation($quotation, $validated);
+                $new_quotation = $this->quotationsServices->deleteMailListItemsFromQuotation($quotation, $validated);
             } else {
                 abort(403);
             }
         }
+        if ($new_quotation) {
+            return response([
+                "message" => "deleted Successfully",
+                "quotation" =>  $new_quotation,
 
-        return response([
-            "message" => "deleted Successfully",
-            "quotation" =>  $new_quotation,
 
-
+            ], 200);
+        }
+        return response()->json([
+            "message" => 'No quotation'
         ], 200);
-
     }
 }

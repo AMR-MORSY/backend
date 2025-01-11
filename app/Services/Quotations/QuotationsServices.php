@@ -79,9 +79,27 @@ class QuotationsServices
 
         return new QuotationResource($quotation);
 
-        // return gettype($validated['mail_prices']);
+       
 
 
+
+
+    }
+
+
+    private function deleteQuotationAfterLastItemRemoval(object $quotation)
+    {
+        $newPriceQuotation=PriceQuotation::where("quotation_id",$quotation->id)->get();
+        $newMailQuotation=MailQuotation::where("quotation_id",$quotation->id)->get();
+
+        if(count($newMailQuotation)==0 && count($newPriceQuotation)==0)
+        {
+            $quotation->delete();
+            return false;
+        }
+        else{
+            return true;
+        }
 
 
 
@@ -93,7 +111,14 @@ class QuotationsServices
             $PriceQuotation=PriceQuotation::where("price_id",$validate['id'])->where("quotation_id",$quotation->id)->first();
             $PriceQuotation->delete();
         }
-        return new QuotationResource($quotation);
+        $isThereItems=$this->deleteQuotationAfterLastItemRemoval($quotation);
+        if($isThereItems)
+        {
+            return new QuotationResource($quotation);
+
+        }
+        return null;
+    
 
     }
     public function deleteMailListItemsFromQuotation(object $quotation,array $validated)
@@ -102,7 +127,13 @@ class QuotationsServices
             $PriceQuotation=MailQuotation::where("mail_price_id",$validate['id'])->where("quotation_id",$quotation->id)->first();
             $PriceQuotation->delete();
         }
-        return new QuotationResource($quotation);
+        $isThereItems=$this->deleteQuotationAfterLastItemRemoval($quotation);
+        if($isThereItems)
+        {
+            return new QuotationResource($quotation);
 
+        }
+        return null;
+       
     }
 }
