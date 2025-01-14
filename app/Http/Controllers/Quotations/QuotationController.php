@@ -15,6 +15,7 @@ use App\Imports\Quotation\QuotationImport;
 use App\Models\Modifications\Modification;
 use App\Http\Resources\PriceQuotationResource;
 use App\Models\MailPrice;
+use App\Rules\UnpricedItemCheckRule;
 use App\Services\Quotations\QuotationsServices;
 use Illuminate\Support\Facades\Mail;
 use League\CommonMark\Extension\SmartPunct\QuoteProcessor;
@@ -35,10 +36,11 @@ class QuotationController extends Controller
 
     public function insertPriceListItems(Request $request, Modification $modification, $quotation_id = null)
     {
+        
         $validator = Validator::make($request->all(), [
             "priceListItems" => ['required', "array"],
             "priceListItems.*.id" => ['required', 'exists:prices,id'],
-            "priceListItems.*.quantity" => ["required", "numeric", "min:0.1"],
+            "priceListItems.*.quantity" => [new UnpricedItemCheckRule($request), "numeric", "nullable"],////////we send the $request object as an argument in the rule because we do not know the index of the current item id
             "priceListItems.*.scope" => ['required', "regex:/^supply|install|s&i$/"]
 
         ]);
@@ -59,7 +61,7 @@ class QuotationController extends Controller
             );
         } else {
             $validated = $validated = $validator->validated();
-            if (!isset($quotation_id)) {
+            if (!isset($quotation_id)) {////////////////////////////////// insertion for new quotation
                 $quotation = Quotation::create([
                     "modification_id" => $modification->id,
                     "user_id" => $request->user()->id,
@@ -77,7 +79,7 @@ class QuotationController extends Controller
                     abort(403);
                 }
             } else {
-                $quotation = Quotation::findOrFail($quotation_id);
+                $quotation = Quotation::findOrFail($quotation_id);//////////////////////insertion for quotation update
                 if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
                     $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
                 } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {

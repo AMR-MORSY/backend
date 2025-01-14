@@ -200,7 +200,8 @@ class ModificationsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             "modifications" => ['required', "array"],
-            "modifications.*" => ['required', "exists:modifications,id"]
+            "modifications.*.id" => ['required', "exists:modifications,id"],
+            "modifications.*.est_cost"=>['required','numeric','min:200']
         ]);
         if ($validator->fails()) {
 
