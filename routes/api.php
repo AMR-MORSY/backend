@@ -117,6 +117,7 @@ Route::prefix('modifications')->middleware(['auth:sanctum'])->group(function () 
     Route::put("/update/{modification}", [ModificationsController::class, "modificationUpdate"])->name("modification_update");
     Route::post("/new", [ModificationsController::class, "newModification"])->name("new_modification");
     Route::get("/filterdates/{date_type}/{from_date?}/{to_date?}", [ModificationsController::class, "modificationsFilteredByDate"]);
+    Route::get("/wo/{modification:wo_code}", [ModificationsController::class, "searchModificationsByWO"]);
     Route::post("/report", [ModificationsController::class, "reportModifications"]);
 });
 
@@ -185,11 +186,11 @@ Route::prefix('Nur')->middleware(['auth:sanctum', 'role:admin|super-admin|NUR_Vi
     Route::post('/3G', [NUR3GController::class, "store"])->name("store_3G");
     Route::post('/4G', [NUR4GController::class, "store"])->name("store_4G");
 });
-Route::prefix('Nur')->middleware(['auth:sanctum', 'role:NUR_Viewer|admin|super-admin'])->group(function () {
-    Route::post('/downloadNUR2G', [DownloadNURController::class, "NUR2G"])->name("site2GNUR");
-    Route::post('/downloadNUR3G', [DownloadNURController::class, "NUR3G"])->name("site3GNUR");
-    Route::post('/downloadNUR4G', [DownloadNURController::class, "NUR4G"])->name("site4GNUR");
-});
+// Route::prefix('Nur')->middleware(['auth:sanctum', 'role:NUR_Viewer|admin|super-admin'])->group(function () {
+//     Route::post('/downloadNUR2G', [DownloadNURController::class, "NUR2G"])->name("site2GNUR");
+//     Route::post('/downloadNUR3G', [DownloadNURController::class, "NUR3G"])->name("site3GNUR");
+//     Route::post('/downloadNUR4G', [DownloadNURController::class, "NUR4G"])->name("site4GNUR");
+// });
 Route::prefix('Nur')->middleware(['auth:sanctum', 'role:NUR_Viewer|admin|super-admin'])->group(function () {
     Route::post('/siteNUR', [ShowNURController::class, "SiteNUR"])->name("siteNUR");
     Route::get('/show/{week}/{year}/{NUR_Type}', [ShowNURController::class, "show_nur"])->name("show_nur");

@@ -25,10 +25,8 @@ class UpdateModificationRequest extends FormRequest
         return [
             
             "subcontractor" => ["required", "regex:/^OT|Alandick|Tri-Tech|Siatnile|Merc|GP|MBV|Systel|TELE-TECH|SAG|LM|HAS|MERG|H-PLUS|STEPS|GTE|AFRO|Benaya|EEC|Egypt Gate|Huawei|INTEGRA|Unilink|Red Tech|Tele-Trust|SAMA-TEL$/"],
-            "actions" => ["required", "regex:/^Retrofitting|Antenna Swap|Repair|Adding SA|Change Power Cable|WE Sharing Panel|PT Ring|Adding Antennas|Extending Cables|Concrete Works|Cable Trays$/"],
+            "actions" => ["required", "regex:/^Retrofitting|Antenna Swap|Repair|Adding SA|Change Power Cable|WE Sharing Panel|PT Ring|Adding Antennas|Extending Cables|Concrete Works|Cable Trays|RRUs Relocation|Site Dismantle|Cage Installation|Adding Mast|Dismantling Cabinets|Relocating Power Meter$/"],
             "description" => ["nullable", "string"],
-            // "oz" => ['nullable', "regex:/^Cairo South|Cairo East|Cairo North,Giza$/"],
-            //  "action_owner" => ["required", 'exists:users,id'],
             "request_date" => "required|date",
             "cw_date" => [" nullable", "date", "requiredIf:status,done", "after_or_equal:request_date"],
             "d6_date" => [" nullable", "date", "requiredIf:status,done", "after_or_equal:request_date"],
@@ -37,7 +35,6 @@ class UpdateModificationRequest extends FormRequest
             "project" => ["required", "regex:/^Site Dismantle|NTRA|Unsafe Existing|B2B|LTE|5G|Sharing|Site Security|Adding Sec|TDD|Power Modification|L1 Modification|Tx Modification|G2G|New Sites$/"],
             "est_cost" => "nullable|numeric",
             "final_cost" => ["nullable", "numeric", "requiredIf:status,done"],
-            // "wo_code" => "nullable|string|max:20",
             "reported" => ["required", "regex:/^Yes|No$/"],
             "reported_at"=>["nullable","date","required_if:reported,Yes"]
         ];

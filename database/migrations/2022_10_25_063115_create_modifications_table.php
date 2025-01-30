@@ -43,6 +43,8 @@ return new class extends Migration
             $table->decimal('est_cost', $precision = 8, $scale = 2)->nullable();
             $table->decimal('final_cost', $precision = 8, $scale = 2)->nullable();
             $table->integer("reported")->default(0);
+            $table->date('reported_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

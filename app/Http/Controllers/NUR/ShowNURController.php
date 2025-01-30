@@ -218,11 +218,18 @@ class ShowNURController extends Controller
             $site_2GNUR = NUR2G::where("problem_site_code", $validated["site_code"])->get();
             $site_3GNUR = NUR3G::where("problem_site_code", $validated["site_code"])->get();
             $site_4GNUR = NUR4G::where("problem_site_code", $validated["site_code"])->get();
+            $site_2GFM=FM2G::where("problem_site_code", $validated["site_code"])->get();
+            $site_3GFM=FM3G::where("problem_site_code", $validated["site_code"])->get();
+            $site_4GFM=FM4G::where("problem_site_code", $validated["site_code"])->get();
+
 
             return response()->json([
                 "NUR2G" => $site_2GNUR,
                 "NUR3G" => $site_3GNUR,
                 "NUR4G" => $site_4GNUR,
+                "FM2G"=>$site_2GFM,
+                "FM3G"=>$site_3GFM,
+                "FM4G"=>$site_4GFM
             ], 200);
         }
     }

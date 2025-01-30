@@ -2,8 +2,8 @@
 
 namespace App\Models\Modifications;
 
-use App\Models\Invoice;
 use App\Models\Price;
+use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\Sites\Site;
 use App\Models\Users\User;
@@ -11,14 +11,18 @@ use App\Models\Users\User;
 use Spatie\Activitylog\LogOptions;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Modification extends Model
 {
     use HasFactory;
     use LogsActivity;
+    use SoftDeletes;
+
+    protected $dates = ['deleted_at'];
 
     protected $table = "modifications";
     protected $guarded = [];

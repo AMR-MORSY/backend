@@ -221,9 +221,9 @@ class ModificationsController extends Controller
         } else {
             $validated = $validated = $validator->validated();
 
-            foreach($validated['modifications'] as $id)
+            foreach($validated['modifications'] as $mod)
             {
-                $modification=Modification::find($id);
+                $modification=Modification::find($mod["id"]);
                 if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
                     $this->modificationServices->reportModification($modification);
                 } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
@@ -272,6 +272,19 @@ class ModificationsController extends Controller
 
         ], 200);
         // }
+    }
+
+    public function searchModificationsByWO(Modification $modification)
+    {
+
+        return response()->json([
+            "message" => "success",
+            "modification" => new ModificationResource($modification),
+
+
+        ], 200);
+
+
     }
 
     public function siteModifications(Request $request, $site_code)
