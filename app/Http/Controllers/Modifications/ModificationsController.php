@@ -15,6 +15,7 @@ use App\Exports\Modifications\AllModificationsExport;
 use App\Http\Requests\FilterModificationsByDateRequest;
 use App\Http\Requests\UpdateModificationRequest;
 use App\Http\Resources\ModificationResource;
+use App\Rules\checkIfIdExists;
 use App\Services\Modifications\ModificationsServices;
 
 class ModificationsController extends Controller
@@ -25,24 +26,17 @@ class ModificationsController extends Controller
         $this->modificationServices = $modificationServices;
     }
 
-    private function get_column_values($column_name)
-    {
-
-        $keys = Modification::all()->groupBy($column_name)->keys();
-
-
-        return $keys;
-    }
+   
 
     public function analysis()
     {
         $analysis = [];
-        $status = $this->get_column_values('status');
-        $subcontractor = $this->get_column_values('subcontractor');
-        $project = $this->get_column_values('project');
-        $requester = $this->get_column_values('requester');
-        $actions = $this->get_column_values('actions');
-        $reported = $this->get_column_values('reported');
+        $status =$this->modificationServices->getModificationStatus();
+        $subcontractor = $this->modificationServices->getSubcontractors();
+        $project =  $this->modificationServices->getProjects();
+        $requester =  $this->modificationServices->getRequesters();
+        $actions =  $this->modificationServices->getActions();
+        $reported = $this->modificationServices->getReportedModification();
         $analysis["status"] = $status;
         $analysis["subcontractor"] =  $subcontractor;
         $analysis["project"] = $project;
@@ -104,7 +98,7 @@ class ModificationsController extends Controller
         ];
         $validator = Validator::make($data, [
             "columnName" => ['required', "regex:/^status|requester|subcontractor|project|actions|reported$/"],
-            "columnValue" => ['required', 'string']
+            "columnValue" => ['required', new checkIfIdExists()]
         ]);
         if ($validator->fails()) {
 
@@ -163,28 +157,28 @@ class ModificationsController extends Controller
         if ($modification->oz == "Cairo South" && $request->user()->can('viewCairoSouthSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification),
+                "details" => new ModificationResource($modification->load(['subcontract','actions',"proj","state","request",'report'])),
 
 
             ], 200);
         } else if ($modification->oz == "Giza" && $request->user()->can('viewGizaSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification),
+                "details" => new ModificationResource($modification->load(['subcontract','actions',"proj","state","request",'report'])),
 
 
             ], 200);
         } else if ($modification->oz == "Cairo North" && $request->user()->can('viewCairoNorthSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification),
+                "details" => new ModificationResource($modification->load(['subcontract','actions',"proj","state","request",'report'])),
 
 
             ], 200);
         } else if ($modification->oz == "Cairo East" && $request->user()->can('viewCairoEastSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification),
+                "details" => new ModificationResource($modification->load(['subcontract','actions',"proj","state","request",'report'])),
 
 
             ], 200);
@@ -251,16 +245,17 @@ class ModificationsController extends Controller
     {
 
 
-        $validated = $request->validated();
+        $validated = $request->safe()->except('actions');
+        $actions=$request->safe()->only('actions');
 
         if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
-            $this->modificationServices->updateModification($modification, $validated);
+            $this->modificationServices->updateModification($modification, $validated,$actions['actions']);
         } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-            $this->modificationServices->updateModification($modification, $validated);
+            $this->modificationServices->updateModification($modification, $validated,$actions['actions']);
         } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-            $this->modificationServices->updateModification($modification, $validated);
+            $this->modificationServices->updateModification($modification, $validated,$actions['actions']);
         } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
-            $this->modificationServices->updateModification($modification, $validated);
+            $this->modificationServices->updateModification($modification, $validated,$actions['actions']);
         } else {
             abort(403);
         }
@@ -344,19 +339,20 @@ class ModificationsController extends Controller
     {
 
 
-        $validated = $request->validated();
+        $validated = $request->safe()->except('actions');
+        $actions=$request->safe()->only('actions');
         $validated['action_owner'] = $request->user()->id;
         $site = Site::where("site_code", $validated['site_code'])->first();
 
         $modification = [];
         if ($site->oz == "Cairo South" && $request->user()->can('createCairoSouthSiteModification', Modification::class)) {
-            $modification = $this->modificationServices->createSiteModification($validated, $site);
+            $modification = $this->modificationServices->createSiteModification($validated, $site,$actions['actions']);
         } else if ($site->oz == "Giza" && $request->user()->can('createGizaSiteModification', Modification::class)) {
-            $modification = $this->modificationServices->createSiteModification($validated, $site);
+            $modification = $this->modificationServices->createSiteModification($validated, $site,$actions['actions']);
         } else if ($site->oz == "Cairo North" && $request->user()->can('createCairoNorthSiteModification', Modification::class)) {
-            $modification = $this->modificationServices->createSiteModification($validated, $site);
+            $modification = $this->modificationServices->createSiteModification($validated, $site,$actions['actions']);
         } else if ($site->oz == "Cairo East" && $request->user()->can('createCairoEastSiteModification', Modification::class)) {
-            $modification = $this->modificationServices->createSiteModification($validated, $site);
+            $modification = $this->modificationServices->createSiteModification($validated, $site,$actions['actions']);
         } else {
             abort(403);
         }

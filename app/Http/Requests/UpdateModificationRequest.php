@@ -24,19 +24,20 @@ class UpdateModificationRequest extends FormRequest
     {
         return [
             
-            "subcontractor" => ["required", "regex:/^OT|Alandick|Tri-Tech|Siatnile|Merc|GP|MBV|Systel|TELE-TECH|SAG|LM|HAS|MERG|H-PLUS|STEPS|GTE|AFRO|Benaya|EEC|Egypt Gate|Huawei|INTEGRA|Unilink|Red Tech|Tele-Trust|SAMA-TEL$/"],
-            "actions" => ["required", "regex:/^Retrofitting|Antenna Swap|Repair|Adding SA|Change Power Cable|WE Sharing Panel|PT Ring|Adding Antennas|Extending Cables|Concrete Works|Cable Trays|RRUs Relocation|Site Dismantle|Cage Installation|Adding Mast|Dismantling Cabinets|Relocating Power Meter$/"],
+            "subcontractor" => ["required", "exists:subcontractors,id"],
+            "actions" => ["required", "array"],
+            "actions.*"=>['required','exists:actions,id'],
             "description" => ["nullable", "string"],
             "request_date" => "required|date",
             "cw_date" => [" nullable", "date", "requiredIf:status,done", "after_or_equal:request_date"],
             "d6_date" => [" nullable", "date", "requiredIf:status,done", "after_or_equal:request_date"],
-            "status" => ["required", "regex:/^waiting D6|done|in progress$/"],
-            "requester" => ["required", "regex:/^Management Team|Civil Team|Maintenance|Radio|Rollout|Transmission|GA|Soc|Sharing team$/"],
-            "project" => ["required", "regex:/^Site Dismantle|NTRA|Unsafe Existing|B2B|LTE|5G|Sharing|Site Security|Adding Sec|TDD|Power Modification|L1 Modification|Tx Modification|G2G|New Sites$/"],
+            "status" => ["required",'exists:modification_status,id'],
+            "requester" => ["required", 'exists:requesters,id'],
+            "project" => ["required",'exists:projects,id'],
             "est_cost" => "nullable|numeric",
             "final_cost" => ["nullable", "numeric", "requiredIf:status,done"],
-            "reported" => ["required", "regex:/^Yes|No$/"],
-            "reported_at"=>["nullable","date","required_if:reported,Yes"]
+           "reported" => ["required",'exists:reported_modifications,id'],
+           "reported_at"=>["nullable","date","required_if:reported,Yes"]
         ];
     }
 

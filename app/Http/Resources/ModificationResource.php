@@ -20,22 +20,22 @@ class ModificationResource extends JsonResource
         return [
             'id' => $this->id,
             "site_code" => $this->site_code,
-            "subcontractor" => $this->subcontractor,
+            "subcontractor" => $this->whenLoaded('subcontract'),
             "site"=>$this->site,
-            "actions" => $this->actions,
+            "actions" => $this->whenLoaded('actions'),
             "description" => $this->description,
             "oz" => $this->oz,
             "action_owner" => User::find($this->action_owner),
             "request_date" => $this->request_date,
             "cw_date" => $this->cw_date,
             "d6_date" => $this->d6_date,
-            "status" => $this->status,
-            "requester" => $this->requester,
-            "project" =>$this->project,
+            "status" =>$this->whenLoaded('state'),
+            "requester" => $this->whenLoaded('request'),
+            "project" =>$this->whenLoaded('proj'),
             "est_cost" => $this->est_cost,
             "final_cost" =>$this->final_cost,
              "wo_code" => $this->wo_code,
-            "reported" => $this->reported,
+            "reported" =>$this->whenLoaded('report'),
             "reported_at"=>$this->reported_at
            
         ];
