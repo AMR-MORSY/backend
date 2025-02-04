@@ -19,7 +19,7 @@ use App\Imports\Quotation\QuotationImport;
 use App\Models\Modifications\Modification;
 use App\Http\Resources\PriceQuotationResource;
 use App\Services\Quotations\QuotationsServices;
-use League\CommonMark\Extension\SmartPunct\QuoteProcessor;
+
 
 class QuotationController extends Controller
 {
@@ -70,9 +70,9 @@ class QuotationController extends Controller
                 ]);
                 if (($modification->oz == "Cairo South" && $request->user()->can('updateCairoSouthSiteModification', Modification::class)) || ($request->user()->id == $modification->action_owner)) {
                     $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
-                } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)){
+                } elseif (($modification->oz == "Cairo North" && $request->user()->can('updateCairoNorthSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
                     $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
-                } elseif(($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
+                } elseif (($modification->oz == "Cairo East" && $request->user()->can('updateCairoEastSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
                     $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
                 } elseif (($modification->oz == "Giza" && $request->user()->can('updateGizaSiteModification', Modification::class)) or ($request->user()->id == $modification->action_owner)) {
                     $new_quotation = $this->quotationsServices->addPriceListItemsToQuotation($quotation, $validated);
@@ -208,6 +208,39 @@ class QuotationController extends Controller
         }
     }
 
+    private function checkHeaderErrors(array $headings): array
+    {
+        $errors = [];
+        // if (empty(array_filter($headings))) {   //////through error if the header is not in the first row 
+
+        //     array_push($errors, 'header is not in the first row');
+        //     return $errors;
+        // } else {
+        $filteredScope = array_filter($headings, function ($value) {
+            return strtolower(trim($value)) == "scope";
+        });
+        $filteredItem = array_filter($headings, function ($value) {
+            return strtolower(trim($value)) == "item";
+        });
+        $filteredQuantity = array_filter($headings, function ($value) {
+            return strtolower(trim($value)) == "quantity";
+        });
+        if (!count($filteredItem) > 0) {
+            array_push($errors, 'The item Header does not exist');
+        }
+        if (!count($filteredScope) > 0) {
+            array_push($errors, 'The Scope Header does not exist');
+        }
+        if (!count($filteredQuantity) > 0) {
+            array_push($errors, 'The Quantity Header does not exist');
+        }
+
+        // return $errors;
+        // }
+
+        return $errors;
+    }
+
     public function uploadQuotation(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -247,57 +280,55 @@ class QuotationController extends Controller
             }
 
             if ($isAuthorized) {
-               
 
-              
-                $file =$request->file("quotation");
+
+
+                $file = $request->file("quotation");
 
                 // Read the first row of the file
                 $headings = (new HeadingRowImport)->toArray($file)[0][0];
-            
-                if (empty(array_filter($headings))) {   //////through error if the header is not in the first row 
-                    $headingError='header is not in the first row';
-                    $errors=[];
-                    $errors[0]=$headingError;
-                    return response()->json(array(
-                        'success' => false,
-                        'message' => 'There are incorect values in the form!',
-                        "errors"=>$errors
-                        
-                    ), 422);
-        
-                }
 
-                  $quotation = Quotation::create([
-                    "modification_id" => $validated['id'],
-                    "user_id" => $request->user()->id,
+                $headingErrors = $this->checkHeaderErrors($headings);
 
-                ]);
 
-                $import = new QuotationImport($quotation['id']);
-                try {
-
-                    Excel::import($import, $request->file("quotation"));
+                if (count($headingErrors) > 0) {
                     return response()->json([
-                        "message" => "inserted Successfully",
-                    ]);
-                } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                    $quotation->delete();///////////delete the created quotation in case of any upload failure
-                    $failures = $e->failures();
+                        "message" => "failed",
+                        "errors" => $headingErrors
 
-                    $errors = [];
-                    $error = [];
-
-                    foreach ($failures as $failure) {
-                        $error['row'] = $failure->row(); // row that went wrong
-                        $error['attribute'] = $failure->attribute(); // either heading key (if using heading row concern) or column index
-                        $error['errors'] = $failure->errors(); // Actual error messages from Laravel validator
-                        $error['values'] = $failure->values(); // The values of the row that has failed.
-                        array_push($errors, $error);
-                    }
-                    return response()->json([
-                        "sheet_errors" => $errors,
                     ], 422);
+                } else {
+                    $quotation = Quotation::create([
+                        "modification_id" => $validated['id'],
+                        "user_id" => $request->user()->id,
+
+                    ]);
+
+                    $import = new QuotationImport($quotation['id']);
+                    try {
+
+                        Excel::import($import, $request->file("quotation"));
+                        return response()->json([
+                            "message" => "inserted Successfully",
+                        ]);
+                    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                        $quotation->delete(); ///////////delete the created quotation in case of any upload failure
+                        $failures = $e->failures();
+
+                        $errors = [];
+                        $error = [];
+
+                        foreach ($failures as $failure) {
+                            $error['row'] = $failure->row(); // row that went wrong
+                            $error['attribute'] = $failure->attribute(); // either heading key (if using heading row concern) or column index
+                            $error['errors'] = $failure->errors(); // Actual error messages from Laravel validator
+                            $error['values'] = $failure->values(); // The values of the row that has failed.
+                            array_push($errors, $error);
+                        }
+                        return response()->json([
+                            "sheet_errors" => $errors,
+                        ], 422);
+                    }
                 }
             }
         }

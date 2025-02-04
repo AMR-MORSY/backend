@@ -40,7 +40,7 @@ class ModificationsServices
 
     private function createW_OCode(object $site)
     {
-        $lastModification = Modification::where("oz", $site->oz)->get();
+        $lastModification = Modification::withTrashed()->where("oz", $site->oz)->get();
         $lastModificationId = 0;
         if (count($lastModification) > 0) {
             $lastModificationId = $lastModification->last()->id;
