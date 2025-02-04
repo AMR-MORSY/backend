@@ -29,6 +29,7 @@ HeadingRowFormatter::extend('custom', function ($value, $key) {
     // And you can use heading column index.
     // return 'column-' . $key; 
 });
+HeadingRowFormatter::default('custom');
 
 class QuotationImport implements ToModel, SkipsEmptyRows, WithHeadingRow, WithValidation
 {
@@ -39,7 +40,10 @@ class QuotationImport implements ToModel, SkipsEmptyRows, WithHeadingRow, WithVa
 
     private $quotation_id;
 
-
+    public function headingRow(): int
+    {
+        return 1; // Specify the row number of the heading row
+    }
 
     public function __construct($quotation)
     {
@@ -48,7 +52,7 @@ class QuotationImport implements ToModel, SkipsEmptyRows, WithHeadingRow, WithVa
 
     public function prepareForValidation($data, $index)
     {
-        $data["scope"] = strtolower(trim($data['scope']));
+         $data["scope"] = strtolower(trim($data['scope']));
 
         $unpriced_item = UnpricedItem::where('item', $data['item'])->exists();
 

@@ -117,7 +117,7 @@ Route::prefix('modifications')->middleware(['auth:sanctum'])->group(function () 
     Route::put("/update/{modification}", [ModificationsController::class, "modificationUpdate"])->name("modification_update");
     Route::post("/new", [ModificationsController::class, "newModification"])->name("new_modification");
     Route::get("/filterdates/{date_type}/{from_date?}/{to_date?}", [ModificationsController::class, "modificationsFilteredByDate"]);
-    Route::get("/wo/{modification:wo_code}", [ModificationsController::class, "searchModificationsByWO"]);
+    Route::get("/wo/{wo_code}", [ModificationsController::class, "searchModificationsByWO"]);
     Route::post("/report", [ModificationsController::class, "reportModifications"]);
 });
 
