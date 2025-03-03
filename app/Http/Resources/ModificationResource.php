@@ -24,6 +24,7 @@ class ModificationResource extends JsonResource
             "site"=>$this->site,
             "actions" => $this->whenLoaded('actions'),
             "description" => $this->description,
+            'pending'=>$this->pending,
             "oz" => $this->oz,
             "action_owner" => User::find($this->action_owner),
             "request_date" => $this->request_date,

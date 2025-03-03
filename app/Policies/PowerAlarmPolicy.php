@@ -11,7 +11,7 @@ class PowerAlarmPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAnyAlarm(User $user): bool
     {
         return $user->hasPermissionTo("read_ENERGY_data");
     }
@@ -27,7 +27,7 @@ class PowerAlarmPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function createAlarm(User $user): bool
     {
         return $user->hasPermissionTo("create_ENERGY_data");
     }

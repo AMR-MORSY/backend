@@ -2,11 +2,12 @@
 
 namespace App\Traits\Admin;
 
+use Carbon\Carbon;
 use App\Models\Users\User;
+use Jenssegers\Agent\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Jenssegers\Agent\Agent;
 
 trait AuthAndAuthorization
 {
@@ -23,7 +24,8 @@ trait AuthAndAuthorization
     {
         $validator = Validator::make($credintials, [
             "email" => "required|email|exists:users,email",
-            "password" => ['required']
+            "password" => ['required'],
+            "timezone"=>["nullable",'string']
 
         ], [
             'email.exists' => 'Email does not exist!',
@@ -52,16 +54,27 @@ trait AuthAndAuthorization
         } else {
 
             $user = User::where("id", Auth::user()->id)->first();
+            $last_login=$user->login_at;
+            if(isset($validated['timezone']) && $validated['timezone']!=null)
+            {
+                $date = Carbon::now()->setTimezone($validated['timezone']);
+                $user->login_at=$date->format('Y-m-d H:i:s');
+                $user->timezone=$validated['timezone'];
+                $user->save();
+
+            }
+         
             $token = $user->createToken($validated["email"]);
             $agent = new Agent();
             $platform = $agent->platform();
             $device = $agent->device();
-           $desktop= $agent->isDesktop();
+            $desktop= $agent->isDesktop();
             $user_data["user"] = $user;
             $user_data["token"] = $token;
             $user_data["platform"]=$platform;
             $user_data["device"]=$device;
             $user_data["desktop"]=$desktop;
+            $user_data['last_login']=$last_login;
             return response()->json(
                 ["message" => "User loged in successfully", "user_data" => $user_data],
 

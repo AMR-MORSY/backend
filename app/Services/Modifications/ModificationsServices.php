@@ -86,13 +86,10 @@ class ModificationsServices
         $modification->final_cost = $validated["final_cost"];
         $modification->est_cost = $validated["est_cost"];
         $modification->project = $validated["project"];
-        // $modification->actions = $validated["actions"];
         $modification->reported = $validated["reported"];
         $modification->reported_at = $validated['reported_at'];
-        // $modification->wo_code = $validated["wo_code"];
-        // $modification->action_owner = $validated["action_owner"];
         $modification->description = $validated["description"];
-        // $modification->oz = $validated["oz"];
+        $modification->pending=$validated['pending'];
         $modification->save();
 
         $actionModifications=ActionModification::where("modification_id",$modification->id)->get();

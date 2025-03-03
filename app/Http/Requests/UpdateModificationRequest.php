@@ -27,7 +27,8 @@ class UpdateModificationRequest extends FormRequest
             "subcontractor" => ["required", "exists:subcontractors,id"],
             "actions" => ["required", "array"],
             "actions.*"=>['required','exists:actions,id'],
-            "description" => ["nullable", "string"],
+            "description" => ["nullable", "string",'regex:/^[a-zA-Z0-9\-_!@#$%^&*(),.?":{}\n\t|<> ]+$/'],//////regex for special chars, chars,numbers,spaces,underscore,dash
+            "pending"=>['nullable','string','regex:/^[a-zA-Z0-9\-_!@#$%^&*(),.?":{}\n\t|<> ]+$/'],
             "request_date" => "required|date",
             "cw_date" => [" nullable", "date", "requiredIf:status,done", "after_or_equal:request_date"],
             "d6_date" => [" nullable", "date", "requiredIf:status,done", "after_or_equal:request_date"],
