@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Modification extends Model
 {
@@ -77,9 +78,9 @@ class Modification extends Model
     }
 
 
-    public function invoice()
+    public function invoice():BelongsTo
     {
-        return $this->hasOne(Invoice::class);
+        return $this->belongsTo(Invoice::class);
     }
 
     public function subcontract():BelongsTo
@@ -108,4 +109,5 @@ class Modification extends Model
     {
         return $this->belongsTo(ModificationStatus::class,'status');
     }
+
 }

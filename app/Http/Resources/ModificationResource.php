@@ -37,8 +37,8 @@ class ModificationResource extends JsonResource
             "final_cost" =>$this->final_cost,
              "wo_code" => $this->wo_code,
             "reported" =>$this->whenLoaded('report'),
-            "reported_at"=>$this->reported_at
-           
+            "reported_at"=>$this->reported_at,
+            "invoice"=>$this->whenLoaded("invoice")           
         ];
     }
 }

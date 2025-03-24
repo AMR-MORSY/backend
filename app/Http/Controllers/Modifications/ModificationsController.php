@@ -157,28 +157,28 @@ class ModificationsController extends Controller
         if ($modification->oz == "Cairo South" && $request->user()->can('viewCairoSouthSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
 
 
             ], 200);
         } else if ($modification->oz == "Giza" && $request->user()->can('viewGizaSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
 
 
             ], 200);
         } else if ($modification->oz == "Cairo North" && $request->user()->can('viewCairoNorthSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
 
 
             ], 200);
         } else if ($modification->oz == "Cairo East" && $request->user()->can('viewCairoEastSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
 
 
             ], 200);
@@ -300,7 +300,7 @@ class ModificationsController extends Controller
             if (count($modification)>0) {
                 return response()->json([
                     "message" => "success",
-                    "modification" =>  ModificationResource::collection($modification->load(['subcontract','actions',"proj","state","request",'report'])),
+                    "modification" =>  ModificationResource::collection($modification->load(['subcontract','actions',"proj","state","request",'report','invoice'])),
 
 
                 ], 200);

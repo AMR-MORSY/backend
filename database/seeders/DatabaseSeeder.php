@@ -10,6 +10,7 @@ use Database\Seeders\RequestersSeeder;
 use Database\Seeders\SubcontractorsSeeder;
 use Database\Seeders\ActionModificationSeeder;
 use Database\Seeders\ModificationWorkOrderSeeder;
+use Database\Seeders\YearMonthModificationSeeder;
 
 
 class DatabaseSeeder extends Seeder
@@ -25,11 +26,12 @@ class DatabaseSeeder extends Seeder
             // PermissionSeeder::class,
             //  ModificationWorkOrderSeeder::class
 
-        //      ActionsSeeder::class,
-        //      SubcontractorsSeeder::class,
-        //      RequestersSeeder::class,
-        //      ProjectsSeeder::class,
-        //    ActionModificationSeeder::class
+            //      ActionsSeeder::class,
+            //      SubcontractorsSeeder::class,
+            //      RequestersSeeder::class,
+            //      ProjectsSeeder::class,
+            //    ActionModificationSeeder::class
+            //  YearMonthModificationSeeder::class
         ]);
     }
 }

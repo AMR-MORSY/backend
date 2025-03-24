@@ -1,37 +1,39 @@
 <?php
 
-use App\Http\Controllers\Admin\ActivitiesController;
-use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Batteries\BatteriesController;
+use Maatwebsite\Excel\Row;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NUR\NUR2GController;
 use App\Http\Controllers\NUR\NUR3GController;
 use App\Http\Controllers\NUR\NUR4GController;
 use App\Http\Controllers\User\LoginController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\NUR\ShowNURController;
 use App\Http\Controllers\User\LogoutController;
 use App\Http\Controllers\NUR\NurIndexController;
+use App\Http\Controllers\Prices\PriceController;
 use App\Http\Controllers\Sites\NodalsController;
 use App\Http\Controllers\User\RegisterController;
 use App\Http\Controllers\Sites\CascadesController;
 use App\Http\Controllers\NUR\DownloadNURController;
+use App\Http\Controllers\Admin\ActivitiesController;
+use App\Http\Controllers\Transmission\WANController;
+use App\Http\Controllers\Invoices\InvoicesController;
 use App\Http\Controllers\Transmission\XPICController;
 use App\Http\Controllers\EnergySheet\EnergyController;
 use App\Http\Controllers\User\ResetPasswordController;
+use App\Http\Controllers\Batteries\BatteriesController;
 use Spatie\Permission\Middlewares\PermissionMiddleware;
+use App\Http\Controllers\Quotations\QuotationController;
 use App\Http\Controllers\Sites\SuperAdminSitesController;
 use App\Http\Controllers\Sites\NormalUsersSitesController;
 use App\Http\Controllers\Instruments\InstrumentsController;
+use App\Http\Controllers\Transmission\IP_traffic_Controller;
 use App\Http\Controllers\Modifications\ModificationsController;
+use App\Http\Controllers\Transmission\All_TX_ActionsController;
 use App\Http\Controllers\EnergySheet\EnergyStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergySiteStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergyZoneStatesticsController;
-use App\Http\Controllers\Prices\PriceController;
-use App\Http\Controllers\Quotations\QuotationController;
-use App\Http\Controllers\Transmission\All_TX_ActionsController;
-use App\Http\Controllers\Transmission\WANController;
-use App\Http\Controllers\Transmission\IP_traffic_Controller;
-use Maatwebsite\Excel\Row;
+use App\Http\Controllers\Modifications\ModificationsDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,23 +121,28 @@ Route::prefix('modifications')->middleware(['auth:sanctum'])->group(function () 
     Route::get("/filterdates/{date_type}/{from_date?}/{to_date?}", [ModificationsController::class, "modificationsFilteredByDate"]);
     Route::get("/wo/{wo_code}", [ModificationsController::class, "searchModificationsByWO"]);
     Route::post("/report", [ModificationsController::class, "reportModifications"]);
+    Route::post('/invoice/store', [InvoicesController::class, 'store']);
+    Route::get('/invoice/{invoice}', [InvoicesController::class, 'view']);
+    Route::get('/years', [ModificationsDashboardController::class, 'years']);
+    Route::get('/dashboard/{year}',[ModificationsDashboardController::class,"dashboard"]);
+
 });
 
 Route::prefix("priceList")->middleware(["auth:sanctum"])->group(function () {
     Route::post('search', [PriceController::class, "search"]);
 });
 
-Route::prefix("quotation")->middleware(["auth:sanctum"])->group(function(){
+Route::prefix("quotation")->middleware(["auth:sanctum"])->group(function () {
 
-Route::get("/modification/{modification}",[QuotationController::class,"findQuotationBelongsToModification"]);
-Route::post ("/upload",[QuotationController::class,'uploadQuotation']);
-// Route::put('/modification/newpricelistitems/{modification}',[QuotationController::class,"addNewQuotationPriceListItems"]);
-// Route::put('/modification/newmailitems/{modification}',[QuotationController::class,"addNewQuotationMailItems"]);
-Route::get("/mailprices/index",[QuotationController::class,"mailPricesIndex"]);
-Route::put('/mailprices/{modification}/{quotation_id?}',[QuotationController::class,"insertMailPricesItems"]);
-Route::put('/priceList/{modification}/{quotation_id?}',[QuotationController::class,"insertPriceListItems"]);
-Route::put('/priceList/delete/items/{modification}/{quotation}',[QuotationController::class,"deletePriceListItems"]);
-Route::put('/mailList/delete/items/{modification}/{quotation}',[QuotationController::class,"deleteMailListItems"]);
+    Route::get("/modification/{modification}", [QuotationController::class, "findQuotationBelongsToModification"]);
+    Route::post("/upload", [QuotationController::class, 'uploadQuotation']);
+    // Route::put('/modification/newpricelistitems/{modification}',[QuotationController::class,"addNewQuotationPriceListItems"]);
+    // Route::put('/modification/newmailitems/{modification}',[QuotationController::class,"addNewQuotationMailItems"]);
+    Route::get("/mailprices/index", [QuotationController::class, "mailPricesIndex"]);
+    Route::put('/mailprices/{modification}/{quotation_id?}', [QuotationController::class, "insertMailPricesItems"]);
+    Route::put('/priceList/{modification}/{quotation_id?}', [QuotationController::class, "insertPriceListItems"]);
+    Route::put('/priceList/delete/items/{modification}/{quotation}', [QuotationController::class, "deletePriceListItems"]);
+    Route::put('/mailList/delete/items/{modification}/{quotation}', [QuotationController::class, "deleteMailListItems"]);
 });
 
 

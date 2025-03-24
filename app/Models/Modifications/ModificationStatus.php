@@ -15,6 +15,6 @@ class ModificationStatus extends Model
 
     public function modifications():HasMany
     {
-        return $this->hasMany(Modification::class);
+        return $this->hasMany(Modification::class,'status');
     }
 }

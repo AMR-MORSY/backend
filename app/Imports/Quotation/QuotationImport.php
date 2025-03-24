@@ -111,15 +111,16 @@ class QuotationImport implements ToModel, SkipsEmptyRows, WithHeadingRow, WithVa
                 return 0;
             }
         } elseif ($scope == 's&i') {
-            if ($supply_price != null && $install_price != null) {
-                return $quantity * ($supply_price + $install_price);
-            } elseif ($supply_price == null && $install_price != null) {
-                return $quantity * $install_price;
-            } elseif ($supply_price != null && $install_price == null) {
-                return $quantity * $supply_price;
-            } else {
-                return 0;
-            }
+            return $quantity * ($supply_price + $install_price);
+            // if ($supply_price != null && $install_price != null) {
+            //     return $quantity * ($supply_price + $install_price);
+            // } elseif ($supply_price == null && $install_price != null) {
+            //     return $quantity * $install_price;
+            // } elseif ($supply_price != null && $install_price == null) {
+            //     return $quantity * $supply_price;
+            // } else {
+            //     return 0;
+            // }
         }
     }
     protected function returnPriceValue(string $attribute, string $attribute_value)

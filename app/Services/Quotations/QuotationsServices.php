@@ -7,8 +7,7 @@ use App\Models\MailPrice;
 use App\Models\MailQuotation;
 use App\Models\PriceQuotation;
 use App\Http\Resources\QuotationResource;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Mail;
+
 
 class QuotationsServices
 {
@@ -27,15 +26,17 @@ class QuotationsServices
                 return 0;
             }
         } elseif ($scope == 's&i') {
-            if ($supply_price != null && $install_price != null) {
-                return $quantity * ($supply_price + $install_price);
-            } elseif ($supply_price == null && $install_price != null) {
-                return $quantity * $install_price;
-            } elseif ($supply_price == null && $install_price != null) {
-                return $quantity * $supply_price;
-            } else {
-                return 0;
-            }
+            return $quantity * ($supply_price+$install_price);
+           
+            // if ($supply_price != null && $install_price != null) {
+            //     return $quantity ;
+            // } elseif ($supply_price == null && $install_price != null) {
+            //     return $quantity * $install_price;
+            // } elseif ($supply_price == null && $install_price != null) {
+            //     return $quantity * $supply_price;
+            // } else {
+            //     return 0;
+            // }
         }
     }
     public function addMailPricesItemsToQuotation(object $quotation, array $validated)

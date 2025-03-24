@@ -50,12 +50,27 @@ class ModificationsServices
         $W_o_Code = $zone . "-00" . $lastModificationId + 1;
         return $W_o_Code;
     }
+
+    private function modificationYearAndMonth(string $date):array
+    {
+        $date = Carbon::createFromFormat('Y-m-d', $date);
+        $year = $date->year;
+        $month = $date->format('F');
+        $data['year']=$year;
+        $data['month']=$month;
+
+        return $data;
+       
+    }
     public function createSiteModification(array $validated, object $site,array $actions)
     {
         $W_o_Code = $this->createW_OCode($site);
         $validated['wo_code'] = $W_o_Code;
         $validated['oz'] = $site->oz;
         $modification = Modification::create($validated);
+        $modification->year=$this->modificationYearAndMonth($validated['request_date'])['year'];
+        $modification->month=$this->modificationYearAndMonth($validated['request_date'])['month'];
+        $modification->save();
 
         for($i=0; $i< count($actions); $i++)
         {
@@ -90,6 +105,8 @@ class ModificationsServices
         $modification->reported_at = $validated['reported_at'];
         $modification->description = $validated["description"];
         $modification->pending=$validated['pending'];
+        $modification->year=$this->modificationYearAndMonth($validated['request_date'])['year'];
+        $modification->month=$this->modificationYearAndMonth($validated['request_date'])['month'];
         $modification->save();
 
         $actionModifications=ActionModification::where("modification_id",$modification->id)->get();
@@ -181,7 +198,11 @@ class ModificationsServices
             $modifications = Modification::where($validated['date_type'],"<=" ,$validated['to_date'])->orderBy($validated['date_type'], "desc")->get();
             return ModificationResource::collection($modifications->load(['subcontract','actions',"proj","state","request",'report']));
         }
-        if ($action_owner != null && $validated['from_date']!=null && $validated['to_date']==null) {
+        elseif ($action_owner == null && $zone==null && $validated['from_date']!=null && $validated['to_date']!=null) {
+            $modifications = Modification::where($validated['date_type'],">=" ,$validated['from_date'])->where($validated['date_type'],"<=" ,$validated['to_date'])->orderBy($validated['date_type'], "desc")->get();
+            return ModificationResource::collection($modifications->load(['subcontract','actions',"proj","state","request",'report']));
+        }
+       elseif ($action_owner != null && $validated['from_date']!=null && $validated['to_date']==null) {
             $modifications = Modification::where($validated['date_type'],">=" ,$validated['from_date'])->where("action_owner", $action_owner)->orderBy($validated['date_type'], "desc")->get();
             return ModificationResource::collection($modifications->load(['subcontract','actions',"proj","state","request",'report']));
         }
