@@ -53,13 +53,20 @@ trait AuthAndAuthorization
             ], 422);
         } else {
 
-            $user = User::where("id", Auth::user()->id)->first();
+            $user = User::with('notifications')->where("id", Auth::user()->id)->first();
             $last_login=$user->login_at;
             if(isset($validated['timezone']) && $validated['timezone']!=null)
             {
                 $date = Carbon::now()->setTimezone($validated['timezone']);
                 $user->login_at=$date->format('Y-m-d H:i:s');
                 $user->timezone=$validated['timezone'];
+                $user->save();
+
+            }
+            else{
+                $date = Carbon::now()->setTimezone(config('app.timezone'));
+                $user->login_at=$date->format('Y-m-d H:i:s');
+                $user->timezone=config('app.timezone');
                 $user->save();
 
             }
@@ -71,6 +78,7 @@ trait AuthAndAuthorization
             $desktop= $agent->isDesktop();
             $user_data["user"] = $user;
             $user_data["token"] = $token;
+            $user_data["notifications"] = $user->notifications->count();
             $user_data["platform"]=$platform;
             $user_data["device"]=$device;
             $user_data["desktop"]=$desktop;

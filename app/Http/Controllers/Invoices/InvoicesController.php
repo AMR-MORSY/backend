@@ -50,8 +50,7 @@ class InvoicesController extends Controller
 
             $path = $request->file('invoice')->store('uploads', 'private');
             $pdfPath = storage_path("app/private/$path");
-            // $pdfData = base64_encode(file_get_contents($pdfPath));
-            // $pdfUrl = 'data:application/pdf;base64,' . $pdfData;
+       
 
             $file = File::create([
                 'path' =>  $pdfPath,

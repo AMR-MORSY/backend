@@ -2,21 +2,25 @@
 
 namespace App\Http\Controllers\Modifications;
 
+use auth;
 use Carbon\Carbon;
 use App\Models\Sites\Site;
+use App\Models\Users\User;
 use Illuminate\Http\Request;
+use App\Rules\checkIfIdExists;
 use Illuminate\Validation\Rule;
+use App\Models\Users\Notification;
+use App\Events\ModificationCreated;
 use App\Http\Controllers\Controller;
 use App\Policies\ModificationPolicy;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Modifications\Modification;
+use App\Http\Resources\ModificationResource;
+use App\Http\Requests\UpdateModificationRequest;
 use App\Http\Requests\StoreNewModificationRequest;
 use App\Exports\Modifications\AllModificationsExport;
-use App\Http\Requests\FilterModificationsByDateRequest;
-use App\Http\Requests\UpdateModificationRequest;
-use App\Http\Resources\ModificationResource;
-use App\Rules\checkIfIdExists;
 use App\Services\Modifications\ModificationsServices;
+use App\Http\Requests\FilterModificationsByDateRequest;
 
 class ModificationsController extends Controller
 {
@@ -28,6 +32,64 @@ class ModificationsController extends Controller
 
 
 
+    public function modificationsWithoutQuotation()
+    {
+        $modificationsOfActionOwner = Modification::with('quotation')->where('action_owner', auth()->user()->id)->get();
+        $modifications = [];
+        if (count($modificationsOfActionOwner) > 0) {
+            $modificationsWithoutPQ =  $modificationsOfActionOwner->filter(function ($item) { ///////////////return object of modifications
+                return $item['quotation'] == null;
+            });
+
+            if (count($modificationsWithoutPQ) > 0) {
+              
+                $modifications = ModificationResource::collection($modificationsWithoutPQ->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+            }
+           
+        }
+        return response()->json([
+            "message" => 'success',
+            "modifications" => $modifications
+
+        ], 200);
+    }
+    // public function checkModificationQuotation()
+    // {
+    //     $modifications = Modification::with('quotation')->get();
+    //     $actionOwners = $modifications->groupBy('action_owner');
+
+    //     $withoutQuotationsArray = [];
+    //     foreach ($actionOwners as $key => $ownerModifications) {
+    //         $withoutQuotations = $ownerModifications->filter(function ($item) {
+    //             return $item['quotation'] == null;
+    //         });
+
+    //         $countOfNoQuotations = count($withoutQuotations);
+    //         if ($countOfNoQuotations > 0) {
+    //             $user = User::find($key);
+
+    //             if ($user) {
+    //                 $without['owner'] = $user->name;
+    //                 $notification =    Notification::create([
+    //                     "user_id" => $key,
+    //                     "message" => "You have $countOfNoQuotations modification work orders without pre quotation "
+
+    //                 ]);
+    //             } else {
+    //                 $without['owner'] = "anonymous";
+    //             }
+
+    //             $without['count_mod'] = $withoutQuotations;
+    //             array_push($withoutQuotationsArray, $without);
+    //         }
+    //     }
+    //     $withQuotations = $modifications->filter(function ($item) {
+    //         return $item['quotation'] == null;
+    //     });
+    //     return response()->json([
+    //         "modification" => Notification::all(),
+    //     ]);
+    // }
     public function analysis()
     {
         $analysis = [];
@@ -157,28 +219,28 @@ class ModificationsController extends Controller
         if ($modification->oz == "Cairo South" && $request->user()->can('viewCairoSouthSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report', 'invoice'])),
 
 
             ], 200);
         } else if ($modification->oz == "Giza" && $request->user()->can('viewGizaSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report', 'invoice'])),
 
 
             ], 200);
         } else if ($modification->oz == "Cairo North" && $request->user()->can('viewCairoNorthSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report', 'invoice'])),
 
 
             ], 200);
         } else if ($modification->oz == "Cairo East" && $request->user()->can('viewCairoEastSiteModifications', Modification::class)) {
             return response()->json([
                 "message" => "success",
-                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report','invoice'])),
+                "details" => new ModificationResource($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report', 'invoice'])),
 
 
             ], 200);
@@ -297,10 +359,10 @@ class ModificationsController extends Controller
 
             $modification = Modification::where('wo_code', $validated['wo_code'])->get();
 
-            if (count($modification)>0) {
+            if (count($modification) > 0) {
                 return response()->json([
                     "message" => "success",
-                    "modification" =>  ModificationResource::collection($modification->load(['subcontract','actions',"proj","state","request",'report','invoice'])),
+                    "modification" =>  ModificationResource::collection($modification->load(['subcontract', 'actions', "proj", "state", "request", 'report', 'invoice'])),
 
 
                 ], 200);
@@ -390,6 +452,8 @@ class ModificationsController extends Controller
             abort(403);
         }
 
+        ModificationCreated::dispatch($modification);
+
         return response()->json([
             "message" => "Inserted Successfully",
             "modification" => $modification
@@ -446,28 +510,5 @@ class ModificationsController extends Controller
         }
     }
 
-    // public function download(Request $request)
-    // {
-    //     $this->authorize("viewAny", Modification::class);
-    //     $ruls = [
-    //         "column_name" => ["required"],
-    //         "column_value" => ["required"],
-
-    //     ];
-    //     $validator = Validator::make($request->all(), $ruls);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(
-    //             [
-    //                 "errors" => $validator->getMessageBag()->toArray(),
-
-    //             ],
-    //             422
-    //         );
-    //     } else {
-    //         $validated = $validator->validated();
-
-    //         return new AllModificationsExport($validated['column_name'], $validated["column_value"]);
-    //     }
-    // }
+   
 }

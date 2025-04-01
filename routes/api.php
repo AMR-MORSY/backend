@@ -34,6 +34,7 @@ use App\Http\Controllers\EnergySheet\EnergyStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergySiteStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergyZoneStatesticsController;
 use App\Http\Controllers\Modifications\ModificationsDashboardController;
+use App\Models\Modifications\Modification;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,10 +51,18 @@ Route::prefix("postman")->group(function () {
     Route::get("/getPostman", [ModificationsController::class, "testPostMan"]);
 });
 Route::prefix("user")->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/notifications/read/all',[LoginController::class,'allNotificationsAsRead']);
+    Route::get('/notifications/delete/all',[LoginController::class,'deleteAllNotification']);
     Route::post('/logout', [LogoutController::class, "logout"]);
+    Route::get('/notifications/{user}',[LoginController::class,'notifications']);
+    Route::get('/notifications/read/{notification}',[LoginController::class,'markNotificationAsRead']);
+   
+    Route::get('/notifications/delete/{notification}',[LoginController::class,'deleteNotification']);
+  
 });
 Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/abilities', [AdminController::class, "userAbilities"]);
+   
 });
 
 Route::prefix('admin')->group(function () {
@@ -86,6 +95,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin|super-admin'])->
     Route::post('/roles/permissions', [AdminController::class, "getRolesPermissionsByRoleName"]);
     Route::post('/permissions/create', [AdminController::class, "createPermission"]);
     Route::post('/user/role/update', [AdminController::class, "updateUserRoles"]);
+    Route::post('/public/notification',[AdminController::class,'sendPublicNotification']);
 });
 
 Route::prefix("user")->group(function () {
@@ -125,6 +135,8 @@ Route::prefix('modifications')->middleware(['auth:sanctum'])->group(function () 
     Route::get('/invoice/{invoice}', [InvoicesController::class, 'view']);
     Route::get('/years', [ModificationsDashboardController::class, 'years']);
     Route::get('/dashboard/{year}',[ModificationsDashboardController::class,"dashboard"]);
+
+    Route::get('/quotation/check',[ModificationsController::class,"modificationsWithoutQuotation"]);
 
 });
 

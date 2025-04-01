@@ -38,7 +38,8 @@ class ModificationResource extends JsonResource
              "wo_code" => $this->wo_code,
             "reported" =>$this->whenLoaded('report'),
             "reported_at"=>$this->reported_at,
-            "invoice"=>$this->whenLoaded("invoice")           
+            "invoice"=>$this->whenLoaded("invoice"),
+            "quotation"=>$this->quotation           
         ];
     }
 }

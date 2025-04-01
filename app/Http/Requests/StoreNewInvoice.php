@@ -29,7 +29,7 @@ class StoreNewInvoice extends FormRequest
             "work_orders"=>['required','array'],
             "work_orders.*"=>['required','exists:modifications,wo_code'],
             "invoice_amount"=>['required'],
-            "modification_amount"=>['required'],
+           
             "po_number"=>['required','integer'],
             "activity"=>['required']
         ];

@@ -7,11 +7,14 @@ use App\Traits\Admin\Users;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
+use App\Notifications\PublicNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 use App\Traits\Admin\AuthAndAuthorization;
 use App\Services\EnergyAlarms\DownAlarmsHelpers;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Notification;
 
 class AdminController extends Controller
 {
@@ -309,5 +312,43 @@ class AdminController extends Controller
     public function canAccessAdminPanel($user): bool
     {
         return str_ends_with($user->email, 'morsy.mamr@gmail.com') && $this->hasVerifiedEmail($user);
+    }
+
+
+    public function sendPublicNotification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+
+            "message" => ["required", "string",'max:1000'],
+            "slug" => ["required", "string",'max:200'],
+            "title"=>['required','string','max:100']
+
+
+
+
+
+        ]);
+        if ($validator->fails()) {
+            return response()->json(array(
+                'success' => false,
+                'message' => 'There are incorect values in the form!',
+                'errors' => $validator->getMessageBag()->toArray()
+            ), 422);
+        } else {
+            $validated = $validator->validated();
+         $data['slug']=$validated['slug'];
+         $data['title']=$validated['title'];
+         $data['message']=$validated['message'];
+         $frontendUrl = Config::get('app.frontend_url');
+         $data['link']="$frontendUrl/user/notifications";
+
+         $users=User::all();
+
+         Notification::send($users,new PublicNotification($data));
+            return response()->json([
+                "success" => true
+            ], 200);
+        }
+
     }
 }

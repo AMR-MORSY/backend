@@ -53,23 +53,7 @@ class Modification extends Model
         return $this->belongsTo(User::class, "action_owner");
     }
 
-    // public function reported(): Attribute
-    // {
-    //     return Attribute::make(
-    //         set: function ($value) {
-    //             if ($value == "Yes") {
-    //                 return 1;
-    //             }
-    //             return 0;
-    //         },
-    //         get: function ($value) {
-    //             if ($value == 1) {
-    //                 return "Yes";
-    //             }
-    //             return "No";
-    //         }
-    //     );
-    // }
+  
 
 
     public function quotation()

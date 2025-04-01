@@ -9,12 +9,15 @@ use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\Users\UserSession;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
+use App\Models\Users\Notification;
 
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+
 use App\Models\Modifications\Modification;
 use Spatie\Permission\Traits\HasPermissions;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -22,6 +25,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles, HasPermissions;
 
+    
     /**
      * The attributes that are mass assignable.
      *
@@ -33,7 +37,8 @@ class User extends Authenticatable
         'password',
         "remember_token",
         "email_verified_at",
-        "rem_token_created_at"
+        "rem_token_created_at",
+        "timezone"
 
     ];
 
@@ -61,6 +66,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    // public function notifications():HasMany
+    // {
+    //     return $this->hasMany(Notification::class);
+    // }
     public function session()
     {
         return $this->hasOne(UserSession::class, "user_id");
@@ -91,4 +100,13 @@ public function invoice()
 {
     return $this->hasOne(Invoice::class);
 }
+
+
+// public function getCreatedAtAttribute($value)
+// {
+//     if (auth()->check()) {
+//         return Carbon::parse($value)->timezone(auth()->user()->timezone ?? config('app.timezone'));
+//     }
+//     return $value;
+// }
 }
