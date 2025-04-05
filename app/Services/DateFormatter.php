@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use auth;
 use Carbon\Carbon;
 
 class DateFormatter

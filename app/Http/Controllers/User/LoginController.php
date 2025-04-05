@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 
+use app;
 use DateTime;
 use DateTimeZone;
 use Carbon\Carbon;
@@ -14,8 +15,8 @@ use App\Services\NUR\Durations;
 use App\Models\Users\AccessToken;
 use App\Models\Users\UserSession;
 use App\Models\Users\Notification;
-use Spatie\Permission\Models\Role;
 
+use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -29,53 +30,58 @@ class LoginController extends Controller
     use AuthAndAuthorization;
 
 
-    public function notifications(User $user)
+    public function notifications(Request $request)
     {
-        $notifications = $user->notifications;
+        $per_page = $request->query('per_page',5);
+        // $page = $request->input('page',1);
+        $user = User::find(auth()->user()->id);
 
-        $notifications->transform(function ($notification) {
-            $notification->created_at = app(DateFormatter::class)
-                ->formatToUserTimezone($notification->created_at);
-            return $notification;
-        });
+        if ($user) {
+            $notifications = $user->notifications()->paginate($per_page);
+
+            $notifications->getCollection()->transform(function ($notification) {
+                $notification->created_at = app(DateFormatter::class)
+                    ->formatToUserTimezone($notification->created_at);
+                return $notification;
+            });
 
 
-        return response()->json([
-            "message" => 'success',
-            "notifications" => $notifications,
+            return response()->json([
+                "message" => 'success',
+                "notifications" => $notifications
 
-        ], 200);
+            ], 200);
+        }
+
+        abort(403);
     }
 
 
     public function markNotificationAsRead($notification)
     {
         $notification = DatabaseNotification::find($notification);
-        // $notification->is_read = 1;
-        // $notification->save();
         $notification->markAsRead();
-        $user = Auth::user();
-        $notifications = $user->notifications;
+        // $user = Auth::user();
+        // $notifications = $user->notifications;
         return response()->json([
             "message" => 'success',
-            "notifications" => $notifications
+            // "notifications" => $notifications
         ], 200);
     }
     public function allNotificationsAsRead()
     {
         $user =  Auth::user();
-      
+
         foreach ($user->unreadNotifications as $notification) {
             $notification->markAsRead();
-           
         }
 
-        $notifications = $user->notifications;
+        // $notifications = $user->notifications;
 
 
         return response()->json([
             "message" => 'success',
-            "notifications" => $notifications
+            // "notifications" => $notifications
 
         ], 200);
     }
@@ -83,12 +89,12 @@ class LoginController extends Controller
     {
         $notification = DatabaseNotification::find($notification);
         $notification->delete();
-        $user =  Auth::user();
-        $notifications = $user->notifications;
+        // $user =  Auth::user();
+        // $notifications = $user->notifications;
 
         return response()->json([
             "message" => 'success',
-            "notifications" => $notifications
+            // "notifications" => $notifications
         ], 200);
     }
 
@@ -96,7 +102,7 @@ class LoginController extends Controller
     {
         $user =  Auth::user();
         // $user->notifications()->delete();
-        foreach ( $user->notifications as $notification) {
+        foreach ($user->notifications as $notification) {
             $notification->delete();
         }
 

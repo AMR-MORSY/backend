@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Modifications;
 
+use Illuminate\Http\Response;
 use auth;
 use Carbon\Carbon;
 use App\Models\Sites\Site;

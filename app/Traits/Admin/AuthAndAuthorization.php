@@ -2,6 +2,7 @@
 
 namespace App\Traits\Admin;
 
+use config;
 use Carbon\Carbon;
 use App\Models\Users\User;
 use Jenssegers\Agent\Agent;

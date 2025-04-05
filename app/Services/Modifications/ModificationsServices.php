@@ -80,7 +80,7 @@ class ModificationsServices
             ]);
         }
 
-        return $modification;
+         return new ModificationResource($modification->load(['subcontract','actions',"proj","state","request",'report']));
     }
 
     public function reportModification(object $modification)

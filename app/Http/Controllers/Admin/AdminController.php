@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Http\Response;
 use App\Models\Users\User;
 use App\Traits\Admin\Users;
 use Illuminate\Http\Request;

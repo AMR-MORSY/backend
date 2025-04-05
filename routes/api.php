@@ -1,7 +1,9 @@
 <?php
 
+use Pusher\Pusher;
 use Maatwebsite\Excel\Row;
 use Illuminate\Support\Facades\Route;
+use App\Models\Modifications\Modification;
 use App\Http\Controllers\NUR\NUR2GController;
 use App\Http\Controllers\NUR\NUR3GController;
 use App\Http\Controllers\NUR\NUR4GController;
@@ -34,7 +36,6 @@ use App\Http\Controllers\EnergySheet\EnergyStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergySiteStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergyZoneStatesticsController;
 use App\Http\Controllers\Modifications\ModificationsDashboardController;
-use App\Models\Modifications\Modification;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,47 @@ use App\Models\Modifications\Modification;
 |
 */
 
+Route::get('/test-pusher', function() {
+    try {
+        $config = [
+            'key' => config('broadcasting.connections.pusher.key'),
+            'secret' => config('broadcasting.connections.pusher.secret'),
+            'app_id' => config('broadcasting.connections.pusher.app_id'),
+            'cluster' => config('broadcasting.connections.pusher.options.cluster')
+        ];
+
+        $pusher = new \Pusher\Pusher(
+            $config['key'],
+            $config['secret'],
+            $config['app_id'],
+            [
+                'cluster' => $config['cluster'],
+                'useTLS' => true,
+                'debug' => true,
+                'log' => app('log')
+            ]
+        );
+
+        $response = $pusher->get('/channels');
+        // $httpResponse = $pusher->getLastResponse();
+
+        return response()->json([
+            'status' => 'success',
+            'config' => $config,
+            'response' => $response,
+            // 'http_status' => $httpResponse['status'],
+            // 'http_body' => $httpResponse['body'],
+            'channels' => property_exists($response, 'channels') ? $response->channels : []
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
 Route::prefix("postman")->group(function () {
     Route::get("/getPostman", [ModificationsController::class, "testPostMan"]);
 });
@@ -54,7 +96,7 @@ Route::prefix("user")->middleware(['auth:sanctum'])->group(function () {
     Route::get('/notifications/read/all',[LoginController::class,'allNotificationsAsRead']);
     Route::get('/notifications/delete/all',[LoginController::class,'deleteAllNotification']);
     Route::post('/logout', [LogoutController::class, "logout"]);
-    Route::get('/notifications/{user}',[LoginController::class,'notifications']);
+    Route::get('/notifications',[LoginController::class,'notifications']);
     Route::get('/notifications/read/{notification}',[LoginController::class,'markNotificationAsRead']);
    
     Route::get('/notifications/delete/{notification}',[LoginController::class,'deleteNotification']);

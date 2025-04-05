@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Sites;
 
 use App\Models\Sites\Site;
-use Illuminate\Http\Request;
+
 use App\Http\Controllers\Controller;
 use App\Models\Cascade;
 use App\Models\Nodal;

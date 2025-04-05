@@ -5,6 +5,7 @@ namespace App\Console;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Http\Response;
 
 class Kernel extends ConsoleKernel
 {
@@ -17,7 +18,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('app:count-modifications-without-quotation')->everyTwoMinutes()->onSuccess(function(){
+        $schedule->command('app:count-modifications-without-quotation')->saturdays()->at('23:00')->timezone('Africa/Cairo')->onSuccess(function(){
             Log::info('modification counted successfully');
         })->onFailure(function(){
             Log::info('modification counted unsuccessfully');
