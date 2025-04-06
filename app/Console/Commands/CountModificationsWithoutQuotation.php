@@ -30,6 +30,23 @@ class CountModificationsWithoutQuotation extends Command
     /**
      * Execute the console command.
      */
+    private function getAreaOwners($modificationZone)
+    {
+
+        if ($modificationZone == "Cairo East") {
+            $users = User::role(['Modification_Admin', 'Cairo_E_Mod_Admin'])->get();
+            return $users;
+        } elseif ($modificationZone == "Cairo North") {
+            $users = User::role(['Modification_Admin', 'Cairo_N_Mod_Admin'])->get();
+            return $users;
+        } elseif ($modificationZone == "Cairo South") {
+            $users = User::role(['Modification_Admin', 'Cairo_S_Mod_Admin'])->get();
+            return $users;
+        } elseif ($modificationZone == "Giza") {
+            $users = User::role(['Modification_Admin', 'Cairo_GZ_Mod_Admin'])->get();
+            return $users;
+        }
+    }
     public function handle()
     {
         $modifications = Modification::with('quotation')->get();
@@ -44,22 +61,26 @@ class CountModificationsWithoutQuotation extends Command
             if ($countOfNoQuotations > 0) {
                 $user = User::find($key);
 
+                $operation_zones = $withoutQuotations->groupBy('oz');
+                foreach ($operation_zones as $zone => $operations) {
+                    $areaAwners = $this->getAreaOwners($zone);
+                    $countZoneModifications = count($operations);
+                    $data["message"] = "You have $countZoneModifications modification work orders without pre quotation.Attaching a soft copy of the pre-quotation to the modification's work order ensures transparency and accuracy in procurement. It helps verify that the final PO aligns with the initially agreed terms, pricing, and specifications. This practice prevents misunderstandings, reduces discrepancies, and provides a clear audit trail. By maintaining proper documentation, organizations enhance accountability, streamline approvals, and ensure compliance with procurement policies.";
+                    $data["title"] = "Modifications without Quotation";
+                    $data["slug"] = "You have $countZoneModifications modification work orders without pre quotation in $zone created by $user->name";
+                    $data["link"] = "$frontendUrl/modifications/without/pq/$zone/$user->id";
+                    Notification::send($areaAwners, new ModificationsWithoutQuotationNotification($data));
+                }
+
+
+
 
                 $data["message"] = "You have $countOfNoQuotations modification work orders without pre quotation.Attaching a soft copy of the pre-quotation to the modification's work order ensures transparency and accuracy in procurement. It helps verify that the final PO aligns with the initially agreed terms, pricing, and specifications. This practice prevents misunderstandings, reduces discrepancies, and provides a clear audit trail. By maintaining proper documentation, organizations enhance accountability, streamline approvals, and ensure compliance with procurement policies.";
                 $data["title"] = "Modifications without Quotation";
                 $data["slug"] = "You have $countOfNoQuotations modification work orders without pre quotation";
                 $data["link"] = "$frontendUrl/modifications/without/pq";
-                if($user)
-                {
-                    $user->notify(new ModificationsWithoutQuotationNotification($data));
 
-                }
-
-            
-
-               
-
-
+                $user->notify(new ModificationsWithoutQuotationNotification($data));
             }
         }
 

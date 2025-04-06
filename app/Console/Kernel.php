@@ -18,11 +18,17 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('app:count-modifications-without-quotation')->saturdays()->at('23:00')->timezone('Africa/Cairo')->onSuccess(function(){
-            Log::info('modification counted successfully');
+        $schedule->command('app:count-modifications-without-quotation')->sundays()->at('4:00')->timezone('Africa/Cairo')->onSuccess(function(){
+            Log::info('modification without-quotation counted successfully');
         })->onFailure(function(){
-            Log::info('modification counted unsuccessfully');
+            Log::info('modification without-quotation counted unsuccessfully');
         });
+        $schedule->command('app:count-unreported-modifications')->sundays()->at('4:30')->timezone('Africa/Cairo')->onSuccess(function(){
+            Log::info('unreported modification counted successfully');
+        })->onFailure(function(){
+            Log::info('unreported modification counted unsuccessfully');
+        });
+        
     }
 
     /**

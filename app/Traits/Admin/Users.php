@@ -12,9 +12,9 @@ use Spatie\Permission\Models\Role;
 trait Users
 {
 
-    public function retrievAllUsersTable()
+    public function retrievAllUsersTable($per_page)
     {
-        $users = User::paginate(2);
+        $users = User::paginate($per_page);
 
         return $users;
     }

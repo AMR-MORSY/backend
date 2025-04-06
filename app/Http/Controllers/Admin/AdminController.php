@@ -227,11 +227,11 @@ class AdminController extends Controller
             ), 200);
         }
     }
-    public function users()
+    public function users(Request $request)
     {
-        // $this->authorize("viewAny", User::class);
+        $per_page = $request->query('per_page',5);
 
-        $users = $this->retrievAllUsersTable();
+        $users = $this->retrievAllUsersTable($per_page);
 
         return response()->json([
             "success" => true,

@@ -2,26 +2,31 @@
 
 namespace App\Http\Controllers\Modifications;
 
-use Illuminate\Http\Response;
 use auth;
 use Carbon\Carbon;
 use App\Models\Sites\Site;
 use App\Models\Users\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Rules\checkIfIdExists;
 use Illuminate\Validation\Rule;
-use App\Models\Users\Notification;
 use App\Events\ModificationCreated;
 use App\Http\Controllers\Controller;
 use App\Policies\ModificationPolicy;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Modifications\Modification;
 use App\Http\Resources\ModificationResource;
+use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\UpdateModificationRequest;
+use App\Models\Modifications\ModificationReport;
 use App\Http\Requests\StoreNewModificationRequest;
 use App\Exports\Modifications\AllModificationsExport;
 use App\Services\Modifications\ModificationsServices;
 use App\Http\Requests\FilterModificationsByDateRequest;
+use App\Notifications\UnreportedModificationsNotification;
+use App\Notifications\ModificationsWithoutQuotationNotification;
+use Illuminate\Support\Facades\Notification as FacadesNotification;
 
 class ModificationsController extends Controller
 {
@@ -31,66 +36,350 @@ class ModificationsController extends Controller
         $this->modificationServices = $modificationServices;
     }
 
+  
 
 
-    public function modificationsWithoutQuotation()
+    public function unreportedModifications(Request $request)
     {
-        $modificationsOfActionOwner = Modification::with('quotation')->where('action_owner', auth()->user()->id)->get();
-        $modifications = [];
-        if (count($modificationsOfActionOwner) > 0) {
-            $modificationsWithoutPQ =  $modificationsOfActionOwner->filter(function ($item) { ///////////////return object of modifications
-                return $item['quotation'] == null;
-            });
+        $oz = $request->query('oz');
+        $action_owner = $request->query('action_owner');
+        $data['oz'] = $oz;
+        $data['action_owner'] = $action_owner;
+        $validator = Validator::make($data, [
+            "oz" => ['nullable', 'in:Cairo South,Cairo East,Cairo North,Giza'],
+            'action_owner' => ['nullable', 'exists:users,id']
 
-            if (count($modificationsWithoutPQ) > 0) {
-              
-                $modifications = ModificationResource::collection($modificationsWithoutPQ->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+        ]);
+        if ($validator->fails()) {
+
+            return response()->json(array(
+                'success' => false,
+                'message' => 'There are incorect values in the form!',
+                'errors' => $validator->getMessageBag()->toArray()
+            ), 422);
+
+
+            $this->throwValidationException(
+
+
+                $validator
+
+            );
+        } else {
+            $validated = $validated = $validator->validated();
+            $user = User::find(auth()->user()->id);
+            $modifications = [];
+            if (isset($validated['oz']) && $validated['oz'] != null & isset($validated['action_owner']) && $validated['action_owner'] != null) {
+
+                if ($validated['oz'] == "Cairo East") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_E_Mod_Admin'])) {
+                        $UnreportedModifications = Modification::where('reported', 2)->where('action_owner', $validated['action_owner'])->where('oz', "Cairo East")->get();
+
+
+                        $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                } elseif ($validated['oz'] == "Cairo North") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_N_Mod_Admin'])) {
+                        $UnreportedModifications = Modification::where('reported', 2)->where('action_owner', $validated['action_owner'])->where('oz', "Cairo North")->get();
+
+
+                        $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                } elseif ($validated['oz'] == "Cairo South") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_S_Mod_Admin'])) {
+                        $UnreportedModifications = Modification::where('reported', 2)->where('action_owner', $validated['action_owner'])->where('oz', "Cairo South")->get();
+
+
+                        $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                } elseif ($validated['oz'] == "Giza") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_GZ_Mod_Admin'])) {
+                        $UnreportedModifications = Modification::where('reported', 2)->where('action_owner', $validated['action_owner'])->where('oz', "Giza")->get();
+
+
+                        $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                }
+            } else {
+                if ($user->hasAnyPermission(['read_CS_modifications', 'read_CN_modifications', 'read_CE_modifications', 'read_GZ_modifications'])) {
+                    $UnreportedModifications = Modification::where('reported', 2)->where('action_owner', $user->id)->get();
+
+
+                    $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+
+                    return response()->json([
+                        "message" => "success",
+                        "modifications" => $modifications
+                    ], 200);
+                } else {
+                    abort(403);
+                }
             }
-           
         }
-        return response()->json([
-            "message" => 'success',
-            "modifications" => $modifications
-
-        ], 200);
+        // return response()->json([
+        //     "data"=>$oz
+        // ],200);
     }
-    // public function checkModificationQuotation()
+
+    public function modificationsWithoutQuotation(Request $request)
+    {
+        $oz = $request->query('oz');
+        $action_owner = $request->query('action_owner');
+        $data['oz'] = $oz;
+        $data['action_owner'] = $action_owner;
+        $validator = Validator::make($data, [
+            "oz" => ['nullable', 'in:Cairo South,Cairo East,Cairo North,Giza'],
+            'action_owner' => ['nullable', 'exists:users,id']
+
+        ]);
+        if ($validator->fails()) {
+
+            return response()->json(array(
+                'success' => false,
+                'message' => 'There are incorect values in the form!',
+                'errors' => $validator->getMessageBag()->toArray()
+            ), 422);
+
+
+            $this->throwValidationException(
+
+
+                $validator
+
+            );
+        } else {
+            $validated = $validated = $validator->validated();
+            $user = User::find(auth()->user()->id);
+            $modifications = [];
+            ///////if zone is set this means that the notification is directed to the area owner or the modification admin and the query comes from them 
+            if (isset($validated['oz']) && $validated['oz'] != null & isset($validated['action_owner']) && $validated['action_owner'] != null) {
+                if ($validated['oz'] == "Cairo East") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_E_Mod_Admin'])) {
+                        $Unreported = Modification::with('quotation')->where('action_owner', $validated['action_owner'])->where('oz', "Cairo East")->get();
+
+                        if (count($Unreported) > 0) {
+                            $UnreportedModifications =    $Unreported->filter(function ($item) { ///////////////return object of modifications
+                                return $item['quotation'] == null;
+                            });
+                            $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+                        }
+
+
+
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                } elseif ($validated['oz'] == "Cairo North") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_N_Mod_Admin'])) {
+                        $Unreported = Modification::with('quotation')->where('action_owner', $validated['action_owner'])->where('oz', "Cairo North")->get();
+                        if (count($Unreported) > 0) {
+                            $UnreportedModifications =    $Unreported->filter(function ($item) { ///////////////return object of modifications
+                                return $item['quotation'] == null;
+                            });
+                            $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+                        }
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                } elseif ($validated['oz'] == "Cairo South") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_S_Mod_Admin'])) {
+                        $Unreported = Modification::with('quotation')->where('action_owner', $validated['action_owner'])->where('oz', "Cairo South")->get();
+
+
+                        if (count($Unreported) > 0) {
+                            $UnreportedModifications =    $Unreported->filter(function ($item) { ///////////////return object of modifications
+                                return $item['quotation'] == null;
+                            });
+                            $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+                        }
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                } elseif ($validated['oz'] == "Giza") {
+                    if ($user->hasRole(['Modification_Admin', 'Cairo_GZ_Mod_Admin'])) {
+                        $Unreported = Modification::with('quotation')->where('action_owner', $validated['action_owner'])->where('oz', "Giza")->get();
+
+
+                        if (count($Unreported) > 0) {
+                            $UnreportedModifications =    $Unreported->filter(function ($item) { ///////////////return object of modifications
+                                return $item['quotation'] == null;
+                            });
+                            $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+                        }
+
+                        return response()->json([
+                            "message" => "success",
+                            "modifications" => $modifications
+                        ], 200);
+                    } else {
+                        abort(403);
+                    }
+                }
+            }
+            /////////////////////if the zone is null that means the query comes from the site engineer 
+            else {
+                if ($user->hasAnyPermission(['read_CS_modifications', 'read_CN_modifications', 'read_CE_modifications', 'read_GZ_modifications'])) {
+                    $Unreported = Modification::with('quotation')->where('action_owner', $user->id)->get();
+
+                    if (count($Unreported) > 0) {
+                        $UnreportedModifications =    $Unreported->filter(function ($item) { ///////////////return object of modifications
+                            return $item['quotation'] == null;
+                        });
+                        $modifications = ModificationResource::collection($UnreportedModifications->load(['subcontract', 'actions', "proj", "state", "request", 'report']));
+                    }
+                    return response()->json([
+                        "message" => "success",
+                        "modifications" => $modifications
+                    ], 200);
+                } else {
+                    abort(403);
+                }
+            }
+        }
+    }
+
+    // private function getAreaOwners($modificationZone)
     // {
-    //     $modifications = Modification::with('quotation')->get();
-    //     $actionOwners = $modifications->groupBy('action_owner');
 
-    //     $withoutQuotationsArray = [];
-    //     foreach ($actionOwners as $key => $ownerModifications) {
-    //         $withoutQuotations = $ownerModifications->filter(function ($item) {
-    //             return $item['quotation'] == null;
-    //         });
-
-    //         $countOfNoQuotations = count($withoutQuotations);
-    //         if ($countOfNoQuotations > 0) {
-    //             $user = User::find($key);
-
-    //             if ($user) {
-    //                 $without['owner'] = $user->name;
-    //                 $notification =    Notification::create([
-    //                     "user_id" => $key,
-    //                     "message" => "You have $countOfNoQuotations modification work orders without pre quotation "
-
-    //                 ]);
-    //             } else {
-    //                 $without['owner'] = "anonymous";
-    //             }
-
-    //             $without['count_mod'] = $withoutQuotations;
-    //             array_push($withoutQuotationsArray, $without);
-    //         }
+    //     if ($modificationZone == "Cairo East") {
+    //         $users = User::role(['Modification_Admin', 'Cairo_E_Mod_Admin'])->get();
+    //         return $users;
+    //     } elseif ($modificationZone == "Cairo North") {
+    //         $users = User::role(['Modification_Admin', 'Cairo_N_Mod_Admin'])->get();
+    //         return $users;
+    //     } elseif ($modificationZone == "Cairo South") {
+    //         $users = User::role(['Modification_Admin', 'Cairo_S_Mod_Admin'])->get();
+    //         return $users;
+    //     } elseif ($modificationZone == "Giza") {
+    //         $users = User::role(['Modification_Admin', 'Cairo_GZ_Mod_Admin'])->get();
+    //         return $users;
     //     }
-    //     $withQuotations = $modifications->filter(function ($item) {
-    //         return $item['quotation'] == null;
-    //     });
-    //     return response()->json([
-    //         "modification" => Notification::all(),
-    //     ]);
     // }
+    public function checkModificationQuotation()
+    {
+        // $UnreportedModification = ModificationReport::where('name', 'No')->first();
+        // $UnreportedModifications = $UnreportedModification->modifications;
+        // $actionOwners = $UnreportedModifications->groupBy('action_owner');
+
+        // $frontendUrl = Config::get('app.frontend_url');
+
+        // foreach ($actionOwners as $key => $ownerModifications) {
+
+
+        //     $countOfModifications = count($ownerModifications);
+        //     if ($countOfModifications > 0) {
+        //         $user = User::find($key); /////////////////refer to the action_owner
+
+        //         $operation_zones = $ownerModifications->groupBy('oz');
+        //         foreach ($operation_zones as $zone => $operations) {//////////////because the site engineer works in different zones so we have to get the count of modifications in every zone
+        //             $areaAwners = $this->getAreaOwners($zone); //// area owners and modification admin
+        //             $countZoneModifications=count($operations);
+        //             $data["message"] = "You have$countZoneModifications unreported modification work orders.Reporting a modification work order ensures transparency and accuracy in procurement. It helps verify that the final PO aligns with the initially agreed terms, pricing, and specifications. This practice prevents misunderstandings, reduces discrepancies, and provides a clear audit trail. By maintaining proper documentation, organizations enhance accountability, streamline approvals, and ensure compliance with procurement policies.";
+        //             $data["title"] = "Unreported Modifications";
+        //             $data["slug"] = "You have$countZoneModifications unreported modification work orders in $zone created by $user->name";
+        //             $data["link"] = "$frontendUrl/modifications/unreported-modifications/$zone/$user->id";///////this link will returns to  area owners and modification admin the modification of that specific action owner
+
+        //             Notification::send($areaAwners, new UnreportedModificationsNotification($data));/////////////////sending notification to modification admin and area owner
+        //         }
+
+        //         $data["message"] = "You have $countOfModifications unreported modification work orders.Reporting a modification work order ensures transparency and accuracy in procurement. It helps verify that the final PO aligns with the initially agreed terms, pricing, and specifications. This practice prevents misunderstandings, reduces discrepancies, and provides a clear audit trail. By maintaining proper documentation, organizations enhance accountability, streamline approvals, and ensure compliance with procurement policies.";
+        //         $data["title"] = "Unreported Modifications";
+        //         $data["slug"] = "You have $countOfModifications unreported modification work orders";
+        //         $data["link"] = "$frontendUrl/modifications/unreported-modifications";
+        //         $user->notify(new UnreportedModificationsNotification($data));////////////////////sending notification to site engineer with all unreported modifications regardless the zone
+        //     }
+        // }
+
+
+        // $modifications = Modification::with('quotation')->get();
+        // $actionOwners = $modifications->groupBy('action_owner');
+        // $frontendUrl = Config::get('app.frontend_url');
+        // foreach ($actionOwners as $key => $ownerModifications) {
+        //     $withoutQuotations = $ownerModifications->filter(function ($item) {
+        //         return $item['quotation'] == null;
+        //     });
+
+        //     $countOfNoQuotations = count($withoutQuotations);
+        //     if ($countOfNoQuotations > 0) {
+        //         $user = User::find($key);
+
+        //         $operation_zones = $withoutQuotations->groupBy('oz');
+        //         foreach ($operation_zones as $zone => $operations) {
+        //             $areaAwners = $this->getAreaOwners($zone);
+        //             $countZoneModifications = count($operations);
+        //             $data["message"] = "You have $countZoneModifications modification work orders without pre quotation.Attaching a soft copy of the pre-quotation to the modification's work order ensures transparency and accuracy in procurement. It helps verify that the final PO aligns with the initially agreed terms, pricing, and specifications. This practice prevents misunderstandings, reduces discrepancies, and provides a clear audit trail. By maintaining proper documentation, organizations enhance accountability, streamline approvals, and ensure compliance with procurement policies.";
+        //             $data["title"] = "Modifications without Quotation";
+        //             $data["slug"] = "You have $countZoneModifications modification work orders without pre quotation in $zone created by $user->name";
+        //             $data["link"] = "$frontendUrl/modifications/without/pq/$zone/$user->id";
+        //             Notification::send($areaAwners, new ModificationsWithoutQuotationNotification($data));
+        //         }
+
+
+
+
+        //         $data["message"] = "You have $countOfNoQuotations modification work orders without pre quotation.Attaching a soft copy of the pre-quotation to the modification's work order ensures transparency and accuracy in procurement. It helps verify that the final PO aligns with the initially agreed terms, pricing, and specifications. This practice prevents misunderstandings, reduces discrepancies, and provides a clear audit trail. By maintaining proper documentation, organizations enhance accountability, streamline approvals, and ensure compliance with procurement policies.";
+        //         $data["title"] = "Modifications without Quotation";
+        //         $data["slug"] = "You have $countOfNoQuotations modification work orders without pre quotation";
+        //         $data["link"] = "$frontendUrl/modifications/without/pq";
+
+        //         $user->notify(new ModificationsWithoutQuotationNotification($data));
+        //     }
+        // }
+
+        // return response()->json([
+        //     "message" => "success"
+        // ], 200);
+
+
+
+
+
+
+
+    }
     public function analysis()
     {
         $analysis = [];
@@ -510,6 +799,4 @@ class ModificationsController extends Controller
             ], 200);
         }
     }
-
-   
 }

@@ -46,48 +46,48 @@ use App\Http\Controllers\Modifications\ModificationsDashboardController;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
+// */
 
-Route::get('/test-pusher', function() {
-    try {
-        $config = [
-            'key' => config('broadcasting.connections.pusher.key'),
-            'secret' => config('broadcasting.connections.pusher.secret'),
-            'app_id' => config('broadcasting.connections.pusher.app_id'),
-            'cluster' => config('broadcasting.connections.pusher.options.cluster')
-        ];
+// Route::get('/test-pusher', function() {
+//     try {
+//         $config = [
+//             'key' => config('broadcasting.connections.pusher.key'),
+//             'secret' => config('broadcasting.connections.pusher.secret'),
+//             'app_id' => config('broadcasting.connections.pusher.app_id'),
+//             'cluster' => config('broadcasting.connections.pusher.options.cluster')
+//         ];
 
-        $pusher = new \Pusher\Pusher(
-            $config['key'],
-            $config['secret'],
-            $config['app_id'],
-            [
-                'cluster' => $config['cluster'],
-                'useTLS' => true,
-                'debug' => true,
-                'log' => app('log')
-            ]
-        );
+//         $pusher = new \Pusher\Pusher(
+//             $config['key'],
+//             $config['secret'],
+//             $config['app_id'],
+//             [
+//                 'cluster' => $config['cluster'],
+//                 'useTLS' => true,
+//                 'debug' => true,
+//                 'log' => app('log')
+//             ]
+//         );
 
-        $response = $pusher->get('/channels');
-        // $httpResponse = $pusher->getLastResponse();
+//         $response = $pusher->get('/channels');
+//         // $httpResponse = $pusher->getLastResponse();
 
-        return response()->json([
-            'status' => 'success',
-            'config' => $config,
-            'response' => $response,
-            // 'http_status' => $httpResponse['status'],
-            // 'http_body' => $httpResponse['body'],
-            'channels' => property_exists($response, 'channels') ? $response->channels : []
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ], 500);
-    }
-});
+//         return response()->json([
+//             'status' => 'success',
+//             'config' => $config,
+//             'response' => $response,
+//             // 'http_status' => $httpResponse['status'],
+//             // 'http_body' => $httpResponse['body'],
+//             'channels' => property_exists($response, 'channels') ? $response->channels : []
+//         ]);
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'status' => 'error',
+//             'message' => $e->getMessage(),
+//             'trace' => $e->getTraceAsString()
+//         ], 500);
+//     }
+// });
 
 Route::prefix("postman")->group(function () {
     Route::get("/getPostman", [ModificationsController::class, "testPostMan"]);
@@ -178,7 +178,9 @@ Route::prefix('modifications')->middleware(['auth:sanctum'])->group(function () 
     Route::get('/years', [ModificationsDashboardController::class, 'years']);
     Route::get('/dashboard/{year}',[ModificationsDashboardController::class,"dashboard"]);
 
-    Route::get('/quotation/check',[ModificationsController::class,"modificationsWithoutQuotation"]);
+    Route::get('/without-quotation',[ModificationsController::class,"modificationsWithoutQuotation"]);
+    Route::get('/unreported',[ModificationsController::class,"unreportedModifications"]);
+    Route::get('/check',[ModificationsController::class,"checkModificationQuotation"]);
 
 });
 
