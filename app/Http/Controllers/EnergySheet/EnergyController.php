@@ -18,26 +18,7 @@ use Illuminate\Support\Facades\Validator;
 
 class EnergyController extends Controller
 {
-    public function index()
-    {
-        $weeks = [];
-        $years = [];
-        for ($i = 1; $i <= 48; $i++) {
-            array_push($weeks, $i);
-        }
-        for ($i = 2022; $i <= 2050; $i++) {
-            array_push($years, $i);
-        }
-
-
-        return response()->json([
-            "weeks" => $weeks,
-            "years" => $years
-
-
-        ], 200);
-    }
-
+    
    
 
 

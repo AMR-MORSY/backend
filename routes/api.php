@@ -1,41 +1,18 @@
 <?php
 
-use Pusher\Pusher;
-use Maatwebsite\Excel\Row;
+
 use Illuminate\Support\Facades\Route;
-use App\Models\Modifications\Modification;
-use App\Http\Controllers\NUR\NUR2GController;
-use App\Http\Controllers\NUR\NUR3GController;
-use App\Http\Controllers\NUR\NUR4GController;
 use App\Http\Controllers\User\LoginController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\NUR\ShowNURController;
 use App\Http\Controllers\User\LogoutController;
-use App\Http\Controllers\NUR\NurIndexController;
-use App\Http\Controllers\Prices\PriceController;
-use App\Http\Controllers\Sites\NodalsController;
 use App\Http\Controllers\User\RegisterController;
-use App\Http\Controllers\Sites\CascadesController;
-use App\Http\Controllers\NUR\DownloadNURController;
 use App\Http\Controllers\Admin\ActivitiesController;
 use App\Http\Controllers\Transmission\WANController;
-use App\Http\Controllers\Invoices\InvoicesController;
 use App\Http\Controllers\Transmission\XPICController;
-use App\Http\Controllers\EnergySheet\EnergyController;
 use App\Http\Controllers\User\ResetPasswordController;
-use App\Http\Controllers\Batteries\BatteriesController;
-use Spatie\Permission\Middlewares\PermissionMiddleware;
-use App\Http\Controllers\Quotations\QuotationController;
-use App\Http\Controllers\Sites\SuperAdminSitesController;
-use App\Http\Controllers\Sites\NormalUsersSitesController;
-use App\Http\Controllers\Instruments\InstrumentsController;
 use App\Http\Controllers\Transmission\IP_traffic_Controller;
 use App\Http\Controllers\Modifications\ModificationsController;
 use App\Http\Controllers\Transmission\All_TX_ActionsController;
-use App\Http\Controllers\EnergySheet\EnergyStatesticsController;
-use App\Http\Controllers\EnergySheet\EnergySiteStatesticsController;
-use App\Http\Controllers\EnergySheet\EnergyZoneStatesticsController;
-use App\Http\Controllers\Modifications\ModificationsDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,63 +25,27 @@ use App\Http\Controllers\Modifications\ModificationsDashboardController;
 |
 // */
 
-// Route::get('/test-pusher', function() {
-//     try {
-//         $config = [
-//             'key' => config('broadcasting.connections.pusher.key'),
-//             'secret' => config('broadcasting.connections.pusher.secret'),
-//             'app_id' => config('broadcasting.connections.pusher.app_id'),
-//             'cluster' => config('broadcasting.connections.pusher.options.cluster')
-//         ];
-
-//         $pusher = new \Pusher\Pusher(
-//             $config['key'],
-//             $config['secret'],
-//             $config['app_id'],
-//             [
-//                 'cluster' => $config['cluster'],
-//                 'useTLS' => true,
-//                 'debug' => true,
-//                 'log' => app('log')
-//             ]
-//         );
-
-//         $response = $pusher->get('/channels');
-//         // $httpResponse = $pusher->getLastResponse();
-
-//         return response()->json([
-//             'status' => 'success',
-//             'config' => $config,
-//             'response' => $response,
-//             // 'http_status' => $httpResponse['status'],
-//             // 'http_body' => $httpResponse['body'],
-//             'channels' => property_exists($response, 'channels') ? $response->channels : []
-//         ]);
-//     } catch (\Exception $e) {
-//         return response()->json([
-//             'status' => 'error',
-//             'message' => $e->getMessage(),
-//             'trace' => $e->getTraceAsString()
-//         ], 500);
-//     }
-// });
+require __DIR__ . "/modifications.php";
+require __DIR__ . "/sites.php";
+require __DIR__ . "/NUR.php";
+require __DIR__ ."/energy.php";
+require __DIR__ ."/batteries.php";
+require __DIR__ ."/instruments.php";
 
 Route::prefix("postman")->group(function () {
     Route::get("/getPostman", [ModificationsController::class, "testPostMan"]);
 });
 Route::prefix("user")->middleware(['auth:sanctum'])->group(function () {
-    Route::get('/notifications/read/all',[LoginController::class,'allNotificationsAsRead']);
-    Route::get('/notifications/delete/all',[LoginController::class,'deleteAllNotification']);
+    Route::get('/notifications/read/all', [LoginController::class, 'allNotificationsAsRead']);
+    Route::get('/notifications/delete/all', [LoginController::class, 'deleteAllNotification']);
     Route::post('/logout', [LogoutController::class, "logout"]);
-    Route::get('/notifications',[LoginController::class,'notifications']);
-    Route::get('/notifications/read/{notification}',[LoginController::class,'markNotificationAsRead']);
-   
-    Route::get('/notifications/delete/{notification}',[LoginController::class,'deleteNotification']);
-  
+    Route::get('/notifications', [LoginController::class, 'notifications']);
+    Route::get('/notifications/read/{notification}', [LoginController::class, 'markNotificationAsRead']);
+
+    Route::get('/notifications/delete/{notification}', [LoginController::class, 'deleteNotification']);
 });
 Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
     Route::get('/abilities', [AdminController::class, "userAbilities"]);
-   
 });
 
 Route::prefix('admin')->group(function () {
@@ -137,7 +78,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin|super-admin'])->
     Route::post('/roles/permissions', [AdminController::class, "getRolesPermissionsByRoleName"]);
     Route::post('/permissions/create', [AdminController::class, "createPermission"]);
     Route::post('/user/role/update', [AdminController::class, "updateUserRoles"]);
-    Route::post('/public/notification',[AdminController::class,'sendPublicNotification']);
+    Route::post('/public/notification', [AdminController::class, 'sendPublicNotification']);
 });
 
 Route::prefix("user")->group(function () {
@@ -152,151 +93,7 @@ Route::prefix("user")->group(function () {
 });
 
 
-Route::prefix("energysheet")->middleware(['auth:sanctum', "role:admin|super-admin"])->group(function () {
-    Route::get('/index', [EnergyController::class, "index"])->name("energysheet_index");
-    Route::post('/index', [EnergyController::class, "store_alarms"])->name("energysheet_store_alarms");
-});
-// ,'role:Modification_Admin|Modification_Viewer|admin|super-admin'
-Route::prefix('modifications')->middleware(['auth:sanctum'])->group(function () {
-    Route::get("/analysis", [ModificationsController::class, "analysis"])->name("analysis");
-    Route::get("/index/{columnName}/{columnValue}", [ModificationsController::class, "index"])->name("index");
 
-    Route::get("/siteModifications/{site_code}", [ModificationsController::class, "siteModifications"])->name("siteModifications");
-    Route::get("/details/{modification}", [ModificationsController::class, "modificationDetails"])->name("details");
-
-
-    Route::post("/download", [ModificationsController::class, "download"])->name("download_modification");
-
-    Route::post("/delete", [ModificationsController::class, "deleteModification"])->name("delete_modification");
-    Route::put("/update/{modification}", [ModificationsController::class, "modificationUpdate"])->name("modification_update");
-    Route::post("/new", [ModificationsController::class, "newModification"])->name("new_modification");
-    Route::get("/filterdates/{date_type}/{from_date?}/{to_date?}", [ModificationsController::class, "modificationsFilteredByDate"]);
-    Route::get("/wo/{wo_code}", [ModificationsController::class, "searchModificationsByWO"]);
-    Route::post("/report", [ModificationsController::class, "reportModifications"]);
-    Route::post('/invoice/store', [InvoicesController::class, 'store']);
-    Route::get('/invoice/{invoice}', [InvoicesController::class, 'view']);
-    Route::get('/years', [ModificationsDashboardController::class, 'years']);
-    Route::get('/dashboard/{year}',[ModificationsDashboardController::class,"dashboard"]);
-
-    Route::get('/without-quotation',[ModificationsController::class,"modificationsWithoutQuotation"]);
-    Route::get('/unreported',[ModificationsController::class,"unreportedModifications"]);
-    Route::get('/check',[ModificationsController::class,"checkModificationQuotation"]);
-
-});
-
-Route::prefix("priceList")->middleware(["auth:sanctum"])->group(function () {
-    Route::post('search', [PriceController::class, "search"]);
-});
-
-Route::prefix("quotation")->middleware(["auth:sanctum"])->group(function () {
-
-    Route::get("/modification/{modification}", [QuotationController::class, "findQuotationBelongsToModification"]);
-    Route::post("/upload", [QuotationController::class, 'uploadQuotation']);
-    // Route::put('/modification/newpricelistitems/{modification}',[QuotationController::class,"addNewQuotationPriceListItems"]);
-    // Route::put('/modification/newmailitems/{modification}',[QuotationController::class,"addNewQuotationMailItems"]);
-    Route::get("/mailprices/index", [QuotationController::class, "mailPricesIndex"]);
-    Route::put('/mailprices/{modification}/{quotation_id?}', [QuotationController::class, "insertMailPricesItems"]);
-    Route::put('/priceList/{modification}/{quotation_id?}', [QuotationController::class, "insertPriceListItems"]);
-    Route::put('/priceList/delete/items/{modification}/{quotation}', [QuotationController::class, "deletePriceListItems"]);
-    Route::put('/mailList/delete/items/{modification}/{quotation}', [QuotationController::class, "deleteMailListItems"]);
-});
-
-
-Route::prefix("energysheet")->middleware(['auth:sanctum'])->group(function () {
-
-    Route::post("/alarms", [EnergyStatesticsController::class, "siteAlarms"]);
-
-    Route::get('/statestics/{week}/{year}', [EnergyStatesticsController::class, "statestics"]);
-    Route::get('/zoneSitesReportedDownAlarms/{zone}/{week}/{year}', [EnergyZoneStatesticsController::class, "zonesSitesReportedDownAlarms"]);
-    Route::get('/zoneDownSitesAfterPowerAlarm/{zone}/{week}/{year}', [EnergyZoneStatesticsController::class, "zoneDownSitesAfterPowerAlarm"]);
-    Route::get('/zoneSitesDownWithoutPowerAlarms/{zone}/{week}/{year}', [EnergyZoneStatesticsController::class, "zoneSitesDownWithoutPowerAlarms"]);
-    Route::post("/sitePowerAlarms", [EnergySiteStatesticsController::class, "sitePowerAlarms"]);
-    Route::post("/siteHighTempAlarms", [EnergySiteStatesticsController::class, "siteHighTempAlarms"]);
-    Route::post("/siteBatteriesHealth", [EnergySiteStatesticsController::class, "siteBatteriesHealth"]);
-    Route::post("/siteDownAlarmsGroupedByWeek", [EnergySiteStatesticsController::class, "siteDownAlarmsGroupedByWeek"]);
-    Route::post("/siteGenAlarms", [EnergySiteStatesticsController::class, "siteGenAlarms"]);
-    Route::post("/downloadSitePowerAlarms", [EnergySiteStatesticsController::class, "downloadSitePowerAlarms"]);
-    Route::post("/downloadSiteHighTempAlarms", [EnergySiteStatesticsController::class, "downloadSiteHighTempAlarms"]);
-    Route::post("/downloadSiteGenAlarms", [EnergySiteStatesticsController::class, "downloadSiteGenAlarms"]);
-    Route::post("/downloadZoneHTAlarms", [EnergyZoneStatesticsController::class, "downloadZoneHTAlarms"]);
-});
-
-
-
-Route::prefix('sites')->middleware(['auth:sanctum', "role:super-admin"])->group(function () {
-    // Route::get('/newsitesinsert',[SitesController::class,"index"])->name("sites");
-    Route::post('/create', [SuperAdminSitesController::class, "siteCreate"])->name("create_site");
-    Route::post('/store', [SuperAdminSitesController::class, "store"])->name("store_sites");
-    Route::post('/downloadAll', [SuperAdminSitesController::class, "export_all"])->name("export_all");
-    Route::get('/cascades', [CascadesController::class, "exportAllCascades"])->name("all_cascades");
-    Route::post('/cascades', [CascadesController::class, "importCascades"])->name("import_cascades");
-    Route::post('/nodals', [NodalsController::class, "importNodals"])->name("import_nodals");
-
-    Route::post('/updateCascades', [CascadesController::class, "updateCascades"])->name("updateCascades");
-    Route::put('/update/{site:site_code}', [SuperAdminSitesController::class, "siteUpdate"])->name("siteUpdate");
-});
-Route::prefix('sites')->middleware((['auth:sanctum', "role:admin|super-admin"]))->group(function () {
-    Route::post('/nodals/download', [NodalsController::class, "exportNodals"]);
-});
-Route::prefix('sites')->middleware(['auth:sanctum'])->group(function () {
-    Route::get('/search/{search}', [NormalUsersSitesController::class, "search"])->name("search_sites");
-    Route::get('/details/{siteCode}', [NormalUsersSitesController::class, "siteDetails"])->name("site_details");
-});
-Route::prefix('Nur')->middleware(['auth:sanctum', 'role:admin|super-admin|NUR_Viewer'])->group(function () {
-    // Route::get('/newsitesinsert',[SitesController::class,"index"])->name("sites");
-    Route::get('/index', [NurIndexController::class, "index"])->name("Nur_index");
-    Route::post('/2G', [NUR2GController::class, "store"])->name("store_2G");
-    Route::post('/3G', [NUR3GController::class, "store"])->name("store_3G");
-    Route::post('/4G', [NUR4GController::class, "store"])->name("store_4G");
-});
-// Route::prefix('Nur')->middleware(['auth:sanctum', 'role:NUR_Viewer|admin|super-admin'])->group(function () {
-//     Route::post('/downloadNUR2G', [DownloadNURController::class, "NUR2G"])->name("site2GNUR");
-//     Route::post('/downloadNUR3G', [DownloadNURController::class, "NUR3G"])->name("site3GNUR");
-//     Route::post('/downloadNUR4G', [DownloadNURController::class, "NUR4G"])->name("site4GNUR");
-// });
-Route::prefix('Nur')->middleware(['auth:sanctum', 'role:NUR_Viewer|admin|super-admin'])->group(function () {
-    Route::post('/siteNUR', [ShowNURController::class, "SiteNUR"])->name("siteNUR");
-    Route::get('/show/{week}/{year}/{NUR_Type}', [ShowNURController::class, "show_nur"])->name("show_nur");
-
-    Route::get('/vip/week/{zone}/{week}/{year}', [ShowNURController::class, "vipSitesWeeklyNUR"]);
-    Route::get('/nodal/week/{zone}/{week}/{year}', [ShowNURController::class, "nodalSitesWeeklyNUR"]);
-    Route::get('/cairo/weekly/MWNUR/{week}/{year}', [ShowNURController::class, "cairoMWweeklyNUR"]);
-    Route::get('/cairo/weekly/GenNUR/{week}/{year}', [ShowNURController::class, "cairoGenweeklyNUR"]);
-    Route::get('/cairo/weekly/PowerNUR/{week}/{year}', [ShowNURController::class, "cairoPowerWeeklyNUR"]);
-    Route::get('/cairo/weekly/NodeBNUR/{week}/{year}', [ShowNURController::class, "cairoNodeBWeeklyNUR"]);
-    Route::get('/cairo/weekly/ModificationNUR/{week}/{year}', [ShowNURController::class, "cairoModificationWeeklyNUR"]);
-    Route::get('/cairo/yearly/NUR_C/{year}', [ShowNURController::class, "cairoYearlyNUR_C"]);
-    Route::get('/cairo/yearly/GenNUR/{year}', [ShowNURController::class, "cairoGenYearlyNUR"]);
-    Route::get('/cairo/yearly/TXNUR/{year}', [ShowNURController::class, "cairoMWYearlyNUR"]);
-    Route::get('/cairo/yearly/NodeBNUR/{year}', [ShowNURController::class, "cairoNodeBYearlyNUR"]);
-    Route::get('/cairo/yearly/PowerNUR/{year}', [ShowNURController::class, "cairoPowerYearlyNUR"]);
-    Route::get('/cairo/yearly/ModificationNUR/{year}', [ShowNURController::class, "cairoModificationYearlyNUR"]);
-});
-
-
-Route::prefix("instruments")->middleware(['auth:sanctum', 'role:instrument_viewer|admin|super-admin'])->group(function () {
-    Route::post('/siteBatteriesData', [InstrumentsController::class, "siteBatteriesData"]);
-
-    Route::post('/siteRectifierData', [InstrumentsController::class, "siteRectifierData"]);
-    Route::post('/siteDeepData', [InstrumentsController::class, "siteDeepData"]);
-    Route::post('/siteMWData', [InstrumentsController::class, "siteMWData"]);
-    Route::post('/siteBTSData', [InstrumentsController::class, "siteBTSData"]);
-    Route::post('/sitePowerData', [InstrumentsController::class, "sitePowerData"]);
-});
-
-Route::prefix("instruments")->middleware((["auth:sanctum", "role:admin|super-admin"]))->group(function () {
-    Route::post('/updateMWData', [InstrumentsController::class, "updateMWData"]);
-    Route::post('/updateBatteriesData', [InstrumentsController::class, "updateSiteBatteriesData"]);
-    Route::post('/updateRectifierData', [InstrumentsController::class, "updateRectifierData"]);
-    Route::post('/insertRectifierData', [InstrumentsController::class, "insertRectifierData"]);
-    Route::post('/updateSiteDeepData', [InstrumentsController::class, "updateSiteDeepData"]);
-    Route::post('/insertSiteDeepData', [InstrumentsController::class, "insertSiteDeepData"]);
-    Route::post('/updateSiteBTSData', [InstrumentsController::class, "updateSiteBTSData"]);
-    Route::post('/updateSitePowerData', [InstrumentsController::class, "updateSitePowerData"]);
-});
-Route::prefix('sites')->group(function () {
-    Route::get('/index', [NormalUsersSitesController::class, "index"]);
-});
 
 Route::prefix("Transmission")->middleware(["auth:sanctum", "role:admin|super-admin"])->group(function () {
 
@@ -310,11 +107,4 @@ Route::prefix("Transmission")->middleware(["auth:sanctum", "role:admin|super-adm
     Route::post("/storeSiteIP_trafic", [IP_traffic_Controller::class, "storeSiteIP_trafic"]);
     Route::post("/storeSiteWAN", [WANController::class, "storeSiteWAN"]);
     Route::post("/storeSiteXPICs", [XPICController::class, "storeSiteXPICs"]);
-});
-
-Route::prefix("batteries")->middleware(["auth:sanctum"])->group(function () {
-    Route::get("/{site}", [BatteriesController::class, "show"]);
-    Route::post("/store", [BatteriesController::class, "store"]);
-    Route::put("/{battery}", [BatteriesController::class, "update"]);
-    Route::delete("/{battery}", [BatteriesController::class, "destroy"]);
 });

@@ -58,7 +58,7 @@ class AuthServiceProvider extends ServiceProvider
          User::class=>UserPolicy::class,
         Modification::class=>ModificationPolicy::class,
         // Site::class=>SitePolicy::class,
-        Instrument::class=>InstrumentPolicy::class,
+        // Instrument::class=>InstrumentPolicy::class,
         PowerAlarm::class=>PowerAlarmPolicy::class,
         HighTempAlarm::class=>HighTempAlarmPolicy::class,
         DownAlarm::class=>DownAlarmPolicy::class,
