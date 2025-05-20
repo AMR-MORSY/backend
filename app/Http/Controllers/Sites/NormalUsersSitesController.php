@@ -90,7 +90,7 @@ class NormalUsersSitesController extends Controller
             $validated = $validator->validated();
             $siteCode = $validated['site_code'];
 
-            $site = Site::where("site_code", $siteCode)->first();
+            $site = Site::with('notices')-> where("site_code", $siteCode)->first();
           
             if ($site) {
                 /////////////////////this part of code to git the Nodal that the site is cascaded on////

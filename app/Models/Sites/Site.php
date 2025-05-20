@@ -31,7 +31,10 @@ class Site extends Model
     protected $guarded = [];
     protected $hidden = ["created_at", "updated_at"];
 
-   
+   public function notices():HasMany
+   {
+    return $this->hasMany(Notice::class,'site_code','site_code');
+   }
 
     public function rectifier():HasOne
     {

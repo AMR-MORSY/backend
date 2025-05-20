@@ -6,8 +6,7 @@ use App\Http\Controllers\Sites\NodalsController;
 use App\Http\Controllers\Sites\CascadesController;
 use App\Http\Controllers\Sites\SuperAdminSitesController;
 use App\Http\Controllers\Sites\NormalUsersSitesController;
-
-
+use App\Http\Controllers\Sites\NoticeController;
 
 Route::prefix('sites')->middleware(['auth:sanctum', "role:super-admin"])->group(function () {
     // Route::get('/newsitesinsert',[SitesController::class,"index"])->name("sites");
@@ -35,3 +34,18 @@ Route::prefix('sites')->middleware(['auth:sanctum','permission:view_mux_plan'])-
    
     Route::get('/muxPlans',[MuxPlanController::class,'siteMuxPlans']);
 });
+
+Route::prefix('site')->middleware(['auth:sanctum','permission:view_site_notices'])->group(function () {
+     Route::get('/notices/all',[NoticeController::class,'notices']);
+    Route::get('/notices',[NoticeController::class,'siteNotices']);
+    Route::get('/noticeTypes',[NoticeController::class,'noticeTypes']);
+
+});
+
+Route::prefix('site')->middleware(['auth:sanctum','permission:create_site_notices'])->group(function () {
+   
+    Route::post('/notice/create',[NoticeController::class,'create']);
+    Route::put('/notice/update',[NoticeController::class,'update']);
+
+});
+
