@@ -7,13 +7,13 @@ use App\Http\Controllers\EnergySheet\EnergySiteStatesticsController;
 use App\Http\Controllers\EnergySheet\EnergyZoneStatesticsController;
 
 
-Route::prefix("energysheet")->middleware(['auth:sanctum', "role:admin|super-admin"])->group(function () {
+Route::prefix("energysheet")->middleware(['auth:sanctum', "permission:store_energy_sheet"])->group(function () {
 
     Route::post('/index', [EnergyController::class, "store_alarms"])->name("energysheet_store_alarms");
 });
 
 
-Route::prefix("energysheet")->middleware(['auth:sanctum'])->group(function () {
+Route::prefix("energysheet")->middleware(['auth:sanctum','permission:view_environmental_alarms'])->group(function () {
 
     Route::post("/alarms", [EnergyStatesticsController::class, "siteAlarms"]);
 

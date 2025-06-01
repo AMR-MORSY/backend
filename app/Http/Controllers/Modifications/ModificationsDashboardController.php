@@ -49,9 +49,13 @@ class ModificationsDashboardController extends Controller
             $dashboard['years']=$years;
 
             $modifications=Modification::where('year',$year)->get();
+            $modificationsWithItems=Modification::with('quotation.prices')->where('status',1)->where('year',$year)->get();
 
             $dashboard['status']=$this->modificationDashboardServices->modificationStatus($modifications);
             $dashboard['subcontractor']=$this->modificationDashboardServices->subcontractors($modifications);
+            $dashboard['owners']=$this->modificationDashboardServices->actionOwners($modifications);
+            $dashboard['projects']=$this->modificationDashboardServices->projects($modifications);
+            $dashboard['items']=$this->modificationDashboardServices->usedItems($modificationsWithItems);
 
             return response()->json([
 

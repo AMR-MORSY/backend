@@ -24,7 +24,7 @@ class EnergyController extends Controller
 
     public function store_alarms(Request $request)
     {
-        $this->authorize("createAlarm",PowerAlarm::class);
+        // $this->authorize("createAlarm",PowerAlarm::class);
 
         $validator = Validator::make($request->all(), ["week" => ['required', 'regex:/^(?:[1-9]|[1-3][0-9]|4[0-8])$/'], "year" => ['required', 'regex:/^2[0-9]{3}$/'], "energy_sheet" => 'required|mimes:csv,xlsx']);
         $validated = $validator->validated();
